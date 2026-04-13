@@ -1,0 +1,84 @@
+import React from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { TournamentProvider } from "@/context/TournamentContext";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { AudioProvider } from "@/context/AudioContext";
+
+import ScrollToTop from "@/components/ScrollToTop";
+import LoadingScreen from "@/components/LoadingScreen";
+import MusicPlayer from "@/components/MusicPlayer";
+
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import Registration from "./pages/Registration";
+import Rules from "./pages/Rules";
+import News from "./pages/News";
+import NewsDetail from "./pages/NewsDetail";
+import Teams from "./pages/Teams";
+import TeamDetail from "./pages/TeamDetail";
+import Tournament from "./pages/Tournament";
+import Schedule from "./pages/Schedule";
+import Admin from "./pages/Admin";
+import MVP from "./pages/MVP";
+import Organizers from "./pages/Organizers";
+
+// ───── Локальные mp3 ─────
+import bgMusic from "@/assets/music.mp3";
+import MVPMusic from "@/assets/mvp.mp3";
+
+const queryClient = new QueryClient();
+
+// ───── AppInner ─────
+const AppInner: React.FC = () => {
+  const location = useLocation();
+  const isMVP = location.pathname === "/mvp";
+
+  return (
+    <AudioProvider
+      musicUrl={bgMusic}
+      mvpmusicUrl={MVPMusic}
+      isMVP={isMVP} // Вкладка MVP — играет только MVPMusic
+    >
+      <ScrollToTop />
+      <MusicPlayer />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/registration" element={<Registration />} />
+        <Route path="/rules" element={<Rules />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/news/:id" element={<NewsDetail />} />
+        <Route path="/teams" element={<Teams />} />
+        <Route path="/teams/:id" element={<TeamDetail />} />
+        <Route path="/tournament" element={<Tournament />} />
+        <Route path="/schedule" element={<Schedule />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/mvp" element={<MVP />} />
+        <Route path="/organizers" element={<Organizers />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AudioProvider>
+  );
+};
+
+// ───── Главный App ─────
+const App: React.FC = () => (
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
+      <TournamentProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <HashRouter>
+            <AppInner />
+          </HashRouter>
+        </TooltipProvider>
+      </TournamentProvider>
+    </ThemeProvider>
+  </QueryClientProvider>
+);
+
+export default App;

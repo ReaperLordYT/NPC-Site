@@ -1,0 +1,298 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, Sun, Moon, Edit, LogOut, Volume2, VolumeX, Volume1, Music } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
+import { useTournament } from '@/context/TournamentContext';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const navItems = [
+  { path: '/', label: 'Главная' },
+  { path: '/registration', label: 'Регистрация' },
+  { path: '/rules', label: 'Регламент' },
+  { path: '/news', label: 'Новости' },
+  { path: '/teams', label: 'Команды' },
+  { path: '/tournament', label: 'Турнир' },
+  { path: '/schedule', label: 'Расписание' },
+  { path: '/organizers', label: 'Организаторы' },
+];
+
+const STORAGE_KEY = 'npc-music-enabled';
+const VOLUME_KEY = 'npc-music-volume';
+
+const AdminShieldIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <text x="12" y="16" textAnchor="middle" fill="currentColor" stroke="none" fontSize="10" fontWeight="bold" fontFamily="sans-serif">A</text>
+  </svg>
+);
+
+// Singleton audio element — живёт вне React, один на весь таб
+let _globalAudio: HTMLAudioElement | null = null;
+let _globalUrl: string | null = null;
+
+function getAudio(url: string): HTMLAudioElement {
+  if (!_globalAudio || _globalUrl !== url) {
+    if (_globalAudio) {
+      _globalAudio.pause();
+    }
+    _globalAudio = new Audio(url);
+    _globalAudio.loop = true;
+    _globalAudio.preload = 'auto';
+    _globalUrl = url;
+  }
+  return _globalAudio;
+}
+
+const Header: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
+  const { isAdmin, isEditing, toggleEditing, logout, data } = useTournament();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+
+  const musicUrl = data.settings.musicUrl;
+
+  // Читаем начальное состояние из localStorage
+  const [enabled, setEnabled] = useState<boolean>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    // Если ничего нет — музыка включена по умолчанию
+    return stored === null ? true : stored === 'true';
+  });
+  const [volume, setVolume] = useState<number>(() => {
+    const stored = localStorage.getItem(VOLUME_KEY);
+    return stored ? parseFloat(stored) : 0.3;
+  });
+  const [muted, setMuted] = useState(false);
+  const [showVolume, setShowVolume] = useState(false);
+
+  // Актуализируем громкость аудио при изменении
+  useEffect(() => {
+    if (_globalAudio) {
+      _globalAudio.volume = muted ? 0 : volume;
+    }
+    localStorage.setItem(VOLUME_KEY, String(volume));
+  }, [volume, muted]);
+
+  // Основная логика: запуск/остановка при изменении url или enabled
+  // Refs for coordinating background music pause/resume with MVP page
+  const pausedByMvpRef = useRef(false);
+  const _autoplayRetryFn = useRef<(() => void) | null>(null);
+
+  const tryPlay = useCallback(() => {
+    if (!musicUrl || !enabled) return;
+    const audio = getAudio(musicUrl);
+    audio.volume = muted ? 0 : volume;
+    if (!audio.paused) return; // уже играет
+    audio.play().catch(() => {
+      // Autoplay заблокирован — ждём первого клика пользователя
+      const onInteract = () => {
+        // Don't resume if MVP page has paused us
+        if (enabled && _globalAudio?.paused && !pausedByMvpRef.current) {
+          _globalAudio.play().catch(() => {});
+        }
+        document.removeEventListener('click', onInteract, true);
+        document.removeEventListener('keydown', onInteract, true);
+        _autoplayRetryFn.current = null;
+      };
+      _autoplayRetryFn.current = onInteract;
+      document.addEventListener('click', onInteract, true);
+      document.addEventListener('keydown', onInteract, true);
+    });
+  }, [musicUrl, enabled, volume, muted]);
+
+  useEffect(() => {
+    if (!musicUrl) return;
+
+    if (enabled) {
+      tryPlay();
+    } else {
+      _globalAudio?.pause();
+    }
+  }, [musicUrl, enabled, tryPlay]);
+
+  // Переключение музыки кнопкой
+  const togglePlay = () => {
+    const next = !enabled;
+    setEnabled(next);
+    localStorage.setItem(STORAGE_KEY, String(next));
+    if (!next) {
+      _globalAudio?.pause();
+    } else if (_globalAudio) {
+      _globalAudio.play().catch(() => {});
+    }
+  };
+
+  // Слушаем события от страницы MVP для паузы/возобновления
+  // pausedByMvp flag предотвращает возобновление фоновой музыки из-за click-listener'а autoplay
+  useEffect(() => {
+    const pause = () => {
+      pausedByMvpRef.current = true;
+      if (_globalAudio) _globalAudio.pause();
+      // Remove any pending autoplay click listeners so they don't fire when MVP page loads
+      if (_autoplayRetryFn.current) {
+        document.removeEventListener('click', _autoplayRetryFn.current, true);
+        document.removeEventListener('keydown', _autoplayRetryFn.current, true);
+        _autoplayRetryFn.current = null;
+      }
+    };
+    const resume = () => {
+      pausedByMvpRef.current = false;
+      if (enabled && _globalAudio) _globalAudio.play().catch(() => {});
+    };
+    window.addEventListener('pause-main-music', pause);
+    window.addEventListener('resume-main-music', resume);
+    return () => {
+      window.removeEventListener('pause-main-music', pause);
+      window.removeEventListener('resume-main-music', resume);
+    };
+  }, [enabled]);
+
+  const isPlaying = enabled && !!musicUrl;
+  const VolumeIcon = muted ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b bg-background/80">
+      <div className="container mx-auto px-4 flex items-center justify-between h-16">
+        <Link to="/" className="font-display text-xl font-bold gradient-text tracking-wider">
+          NPC
+        </Link>
+
+        {/* Desktop Nav */}
+        <nav className="hidden lg:flex items-center gap-1">
+          {navItems.map(item => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`px-3 py-2 rounded-md text-sm font-heading font-semibold tracking-wide transition-colors ${
+                location.pathname === item.path
+                  ? 'text-primary bg-primary/10'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+          {/* Music nav item */}
+          {musicUrl && (
+            <div className="relative">
+              <button
+                onClick={togglePlay}
+                onContextMenu={e => { e.preventDefault(); setShowVolume(!showVolume); }}
+                className={`px-3 py-2 rounded-md text-sm font-heading font-semibold tracking-wide transition-colors flex items-center gap-1 ${
+                  isPlaying ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+                title="ЛКМ: вкл/выкл музыку | ПКМ: громкость"
+              >
+                <Music size={16} />
+                Музыка
+              </button>
+              {/* Volume popup */}
+              <AnimatePresence>
+                {showVolume && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="absolute top-full left-0 mt-2 glass-card rounded-xl p-3 flex items-center gap-2 z-50 min-w-[180px]"
+                  >
+                    <button onClick={() => setMuted(!muted)} className="text-muted-foreground hover:text-foreground">
+                      <VolumeIcon size={16} />
+                    </button>
+                    <input
+                      type="range" min="0" max="1" step="0.05"
+                      value={muted ? 0 : volume}
+                      onChange={e => { setVolume(parseFloat(e.target.value)); setMuted(false); }}
+                      className="w-24 h-1 accent-primary"
+                    />
+                    <button onClick={() => setShowVolume(false)} className="text-muted-foreground hover:text-foreground ml-1">
+                      <X size={14} />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          {/* Music toggle for mobile */}
+          {musicUrl && (
+            <button
+              onClick={togglePlay}
+              className={`p-2 rounded-md transition-colors lg:hidden ${isPlaying ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'}`}
+              title={isPlaying ? 'Выключить музыку' : 'Включить музыку'}
+            >
+              <Music size={18} />
+            </button>
+          )}
+
+          {isAdmin && (
+            <>
+              <Link to="/admin" className="p-2 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-primary/10" title="Админ-панель">
+                <AdminShieldIcon />
+              </Link>
+              <button onClick={toggleEditing} className={`p-2 rounded-md transition-colors ${isEditing ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title={isEditing ? 'Выключить редактирование' : 'Включить редактирование'}>
+                <Edit size={18} />
+              </button>
+              <button onClick={logout} className="p-2 text-muted-foreground hover:text-foreground" title="Выйти">
+                <LogOut size={18} />
+              </button>
+            </>
+          )}
+          {!isAdmin && (
+            <Link to="/admin" className="p-2 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-primary/10" title="Админ-панель">
+              <AdminShieldIcon />
+            </Link>
+          )}
+          <button onClick={toggleTheme} className="p-2 text-muted-foreground hover:text-foreground rounded-md">
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 text-foreground">
+            <Menu size={22} />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'tween', duration: 0.3 }}
+            className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl lg:hidden"
+          >
+            <div className="flex justify-end p-4">
+              <button onClick={() => setMobileOpen(false)}><X size={24} /></button>
+            </div>
+            <nav className="flex flex-col items-center gap-4 mt-8">
+              {navItems.map(item => (
+                <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)} className="text-xl font-heading font-semibold text-foreground hover:text-primary transition-colors">
+                  {item.label}
+                </Link>
+              ))}
+              {musicUrl && (
+                <div className="flex items-center gap-3 mt-4">
+                  <button onClick={togglePlay} className={`px-4 py-2 rounded-lg font-heading font-semibold flex items-center gap-2 ${isPlaying ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <Music size={18} /> {isPlaying ? 'Выключить музыку' : 'Включить музыку'}
+                  </button>
+                  <button onClick={() => setMuted(!muted)} className="text-muted-foreground hover:text-foreground">
+                    <VolumeIcon size={18} />
+                  </button>
+                  <input type="range" min="0" max="1" step="0.05" value={muted ? 0 : volume} onChange={e => { setVolume(parseFloat(e.target.value)); setMuted(false); }} className="w-20 accent-primary" />
+                </div>
+              )}
+              {!isAdmin && (
+                <Link to="/admin" onClick={() => setMobileOpen(false)} className="text-xl font-heading font-semibold text-primary flex items-center gap-2">
+                  <AdminShieldIcon /> Админ
+                </Link>
+              )}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+};
+
+export default Header;
