@@ -31,7 +31,7 @@ const SaveButton: React.FC = () => {
         ) : (
           <>
             <Save size={16} />
-            Сохранить в GitHub
+            Сохранить в Supabase
           </>
         )}
       </button>

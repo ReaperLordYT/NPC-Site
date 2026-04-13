@@ -3,12 +3,10 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'public/data.json'  # не пересобираем сайт когда меняются только данные
   workflow_dispatch:
 
 permissions:
-  contents: write          # needed to commit data.json updates
+  contents: read
   pages: write
   id-token: write
 
@@ -27,18 +25,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Create public/data.json on first deploy if it doesn't exist yet
-      - name: Ensure data.json exists
-        run: |
-          if [ ! -f public/data.json ]; then
-            echo '{"teams":[],"news":[],"matches":[],"groups":[],"settings":{}}' > public/data.json
-            git config user.name "GitHub Actions"
-            git config user.email "actions@github.com"
-            git add public/data.json
-            git diff --cached --quiet || git commit -m "chore: init data.json [skip ci]"
-            git push
-          fi
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -53,6 +39,9 @@ jobs:
           # Replace "tournament-site" with your actual repository name.
           # If you use a CUSTOM DOMAIN, set this to: VITE_BASE_URL=/
           VITE_BASE_URL: /${{ github.event.repository.name }}/
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_ADMIN_EMAILS: ${{ secrets.VITE_SUPABASE_ADMIN_EMAILS }}
         run: npm run build
 
       - name: Upload artifact

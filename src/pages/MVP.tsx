@@ -4,38 +4,6 @@ import { useTournament } from '@/context/TournamentContext';
 import EditableText from '@/components/EditableText';
 import { motion } from 'framer-motion';
 import { Star, Upload, Volume2, VolumeX, Volume1, Music, Trophy, Trash2, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import {
-  getGitHubConfig,
-  isGitHubConfigured,
-  saveFileToGitHub,
-} from '@/integrations/github/storage';
-
-const MVP_MUSIC_PATH = 'public/music/mvp.mp3';
-
-async function uploadMusicToGitHub(file: File): Promise<string> {
-  if (!isGitHubConfigured()) {
-    throw new Error('GitHub не настроен. Зайди в Admin → настрой GitHub токен.');
-  }
-  const cfg = getGitHubConfig()!;
-
-  const base64 = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(',')[1]);
-    };
-    reader.onerror = () => reject(new Error('Ошибка чтения файла'));
-    reader.readAsDataURL(file);
-  });
-
-  const url = await saveFileToGitHub(
-    cfg,
-    MVP_MUSIC_PATH,
-    base64,
-    'chore: upload MVP music [skip ci]'
-  );
-  return `${url}?t=${Date.now()}`;
-}
 
 const MVP: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
@@ -113,7 +81,12 @@ const MVP: React.FC = () => {
     setUploadDone(false);
 
     try {
-      const url = await uploadMusicToGitHub(file);
+      const url = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+        reader.readAsDataURL(file);
+      });
       updateSettings({ mvpMusicUrl: url });
       setUploadDone(true);
 
@@ -141,7 +114,6 @@ const MVP: React.FC = () => {
 
   const hasMusic = !!settings.mvpMusicUrl;
   const VolumeIcon = muted ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
-  const ghReady = isGitHubConfigured();
 
   return (
     <PageLayout>
@@ -245,19 +217,9 @@ const MVP: React.FC = () => {
                 <Music size={15} className="inline mr-1" /> Музыка MVP страницы
               </label>
 
-              {!ghReady && (
-                <div className="flex items-start gap-2 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2.5 mb-3 text-xs text-amber-300">
-                  <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
-                  <span>GitHub токен не настроен. Зайди в <strong>Admin → GitHub конфиг</strong>.</span>
-                </div>
-              )}
-
-              {ghReady && (
-                <div className="text-xs text-muted-foreground/70 bg-muted/30 rounded-lg px-3 py-2 mb-3">
-                  MP3 загрузится в репо (<code className="text-primary/80">public/music/mvp.mp3</code>) и будет
-                  слышен всем посетителям. Лимит: 20 МБ.
-                </div>
-              )}
+              <div className="text-xs text-muted-foreground/70 bg-muted/30 rounded-lg px-3 py-2 mb-3">
+                MP3 хранится в настройках Supabase и сразу доступен посетителям. Лимит: 20 МБ.
+              </div>
 
               {hasMusic && !uploading && (
                 <div className="flex items-center gap-3 mb-3 bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2">
@@ -282,7 +244,7 @@ const MVP: React.FC = () => {
               {uploadDone && !uploadError && (
                 <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2 mb-3 text-xs text-green-400">
                   <CheckCircle size={14} />
-                  Загружено в GitHub! Нажми «Сохранить в GitHub» чтобы обновить data.json.
+                  Загружено в Supabase.
                 </div>
               )}
 
@@ -292,15 +254,15 @@ const MVP: React.FC = () => {
                 accept="audio/*"
                 onChange={handleMvpMusicUpload}
                 className="hidden"
-                disabled={uploading || !ghReady}
+                disabled={uploading}
               />
               <button
                 onClick={() => mvpMusicFileRef.current?.click()}
-                disabled={uploading || !ghReady}
+                disabled={uploading}
                 className="flex items-center gap-2 px-4 py-2 border rounded-lg text-muted-foreground hover:text-foreground hover:border-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {uploading
-                  ? <><Loader2 size={16} className="animate-spin" /> Загружается в GitHub…</>
+                  ? <><Loader2 size={16} className="animate-spin" /> Загружается…</>
                   : <><Upload size={16} /> {hasMusic ? 'Заменить MP3' : 'Загрузить MP3'}</>
                 }
               </button>

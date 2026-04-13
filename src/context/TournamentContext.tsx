@@ -1,14 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { TournamentData, Team, NewsItem, TournamentMatch, Group, SiteSettings, Player, BracketConnection } from '@/types/tournament';
 import {
-  getGitHubConfig,
-  saveGitHubConfig,
-  fetchDataFromGitHub,
-  saveDataToGitHub,
-  isGitHubConfigured,
-  validateAdminAccess,
-  PUBLIC_REPO,
-} from '@/integrations/github/storage';
+  fetchTournamentData,
+  saveTournamentData,
+  signInAdmin,
+  signOutAdmin,
+  subscribeTournamentUpdates,
+  isCurrentUserAdmin,
+  listBackups,
+  createBackupSnapshot,
+  restoreBackupSnapshot,
+  BackupSnapshot,
+} from '@/integrations/supabase/storage';
 
 const defaultSettings: SiteSettings = {
   discordLink: 'https://discord.gg/dokapipsi',
@@ -110,8 +113,8 @@ interface TournamentContextType {
   saveError: string | null;
   hasUnsavedChanges: boolean;
   saveNow: () => Promise<void>;
-  login: (token: string) => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   toggleEditing: () => void;
   updateSettings: (settings: Partial<SiteSettings>) => void;
   addTeam: (team: Team) => void;
@@ -132,6 +135,10 @@ interface TournamentContextType {
   getGroupStandings: (groupId: string) => { teamId: string; wins: number; losses: number; draws: number; points: number }[];
   refreshData: () => Promise<void>;
   withdrawTeam: (id: string, reason?: string) => void;
+  backups: BackupSnapshot[];
+  refreshBackups: () => Promise<void>;
+  createBackup: (note: string) => Promise<void>;
+  restoreBackup: (backupId: string) => Promise<void>;
 }
 
 const TournamentContext = createContext<TournamentContextType | null>(null);
@@ -148,30 +155,21 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(() => sessionStorage.getItem('npc-admin') === 'true');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [backups, setBackups] = useState<BackupSnapshot[]>([]);
   const pendingDataRef = useRef<TournamentData | null>(null);
+  const autoSaveTimerRef = useRef<number | null>(null);
 
-  // ── Fetch fresh data from GitHub ────────────────────────────────────────
-const loadFromGitHub = useCallback(async () => {
-  // Читаем публично — токен не нужен для публичного репо
-  const owner = PUBLIC_REPO.owner;
-  const repo = PUBLIC_REPO.repo;
-  const branch = PUBLIC_REPO.branch;
-  
+  // ── Fetch fresh data from Supabase ──────────────────────────────────────
+const loadFromSupabase = useCallback(async () => {
   try {
-    const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/public/data.json?t=${Date.now()}`;
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const parsed = await res.json() as TournamentData;
-    const mergedBase: TournamentData = {
+    const parsed = await fetchTournamentData();
+    const merged: TournamentData = {
       ...defaultData,
       ...parsed,
       settings: { ...defaultSettings, ...(parsed.settings || {}) },
-    };
-    const merged: TournamentData = {
-      ...mergedBase,
-      teams: (mergedBase.teams || []).map(team => ({
+      teams: (parsed.teams || []).map(team => ({
         ...team,
         players: (team.players || []).map(player => ({
           ...player,
@@ -182,46 +180,42 @@ const loadFromGitHub = useCallback(async () => {
     setData(merged);
     saveToLS(merged);
   } catch (e) {
-    console.warn('GitHub fetch failed, using local data:', e);
+    console.warn('Supabase fetch failed, using local data:', e);
   }
 }, []);
 
   useEffect(() => {
-    loadFromGitHub().finally(() => setLoading(false));
-  }, [loadFromGitHub]);
+    Promise.all([
+      loadFromSupabase(),
+      (async () => {
+        const admin = await isCurrentUserAdmin();
+        setIsAdmin(admin);
+        if (admin) setBackups(await listBackups());
+      })(),
+    ]).finally(() => setLoading(false));
+  }, [loadFromSupabase]);
 
-  // ── Auto-refresh every 60s + on tab focus ───────────────────────────────
-  // Для обычных посетителей — обновляем данные автоматически.
-  // Для админа — отключаем полностью, чтобы не перезатирать несохранённые правки.
-  const isAdminRef = useRef(false);
-  useEffect(() => { isAdminRef.current = isAdmin; }, [isAdmin]);
-
+  // ── Realtime updates for all clients ────────────────────────────────────
   useEffect(() => {
-    const safeRefresh = () => { if (!isAdminRef.current) loadFromGitHub(); };
-    const interval = setInterval(safeRefresh, 10_000);
-    const onVisible = () => { if (document.visibilityState === 'visible') safeRefresh(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', onVisible);
-    };
-  }, [loadFromGitHub]);
+    const unsub = subscribeTournamentUpdates(() => {
+      if (!saving) loadFromSupabase();
+    });
+    return () => unsub();
+  }, [loadFromSupabase, saving]);
 
-  // ── Manual save to GitHub ───────────────────────────────────────────────
+  // ── Save to Supabase ────────────────────────────────────────────────────
   const saveNow = useCallback(async () => {
-    if (!isGitHubConfigured()) return;
     const dataToSave = pendingDataRef.current ?? data;
     setSaving(true);
     setSaveError(null);
     try {
-      const cfg = getGitHubConfig()!;
-      await saveDataToGitHub(cfg, dataToSave);
+      await saveTournamentData(dataToSave);
       setHasUnsavedChanges(false);
       pendingDataRef.current = null;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       setSaveError(msg);
-      console.error('GitHub save error:', msg);
+      console.error('Supabase save error:', msg);
     } finally {
       setSaving(false);
     }
@@ -237,19 +231,18 @@ const loadFromGitHub = useCallback(async () => {
     });
   }, []);
 
-  const login = async (token: string) => {
-    await validateAdminAccess(token);
-    saveGitHubConfig({
-      owner: PUBLIC_REPO.owner,
-      repo: PUBLIC_REPO.repo,
-      branch: PUBLIC_REPO.branch,
-      token,
-    });
+  const login = async (email: string, password: string) => {
+    await signInAdmin(email, password);
     setIsAdmin(true);
-    sessionStorage.setItem('npc-admin', 'true');
+    setBackups(await listBackups());
   };
 
-  const logout = () => { setIsAdmin(false); setIsEditing(false); sessionStorage.removeItem('npc-admin'); };
+  const logout = async () => {
+    await signOutAdmin();
+    setIsAdmin(false);
+    setIsEditing(false);
+    setBackups([]);
+  };
   const toggleEditing = () => setIsEditing(prev => !prev);
   const updateSettings = (s: Partial<SiteSettings>) =>
     updateData(prev => ({ ...prev, settings: { ...prev.settings, ...s } }));
@@ -354,6 +347,46 @@ const loadFromGitHub = useCallback(async () => {
       ),
     }));
 
+  const refreshBackups = useCallback(async () => {
+    if (!isAdmin) return;
+    setBackups(await listBackups());
+  }, [isAdmin]);
+
+  const createBackup = useCallback(async (note: string) => {
+    const snapshot = pendingDataRef.current ?? data;
+    await createBackupSnapshot(snapshot, note);
+    await refreshBackups();
+  }, [data, refreshBackups]);
+
+  const restoreBackup = useCallback(async (backupId: string) => {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await restoreBackupSnapshot(backupId);
+      await loadFromSupabase();
+      setHasUnsavedChanges(false);
+      pendingDataRef.current = null;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setSaveError(msg);
+      throw e;
+    } finally {
+      setSaving(false);
+    }
+  }, [loadFromSupabase]);
+
+  // Autosave for realtime editing
+  useEffect(() => {
+    if (!isAdmin || !hasUnsavedChanges || saving) return;
+    if (autoSaveTimerRef.current) window.clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = window.setTimeout(() => {
+      void saveNow();
+    }, 1000);
+    return () => {
+      if (autoSaveTimerRef.current) window.clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [isAdmin, hasUnsavedChanges, saving, saveNow]);
+
   return (
     <TournamentContext.Provider value={{
       data, isAdmin, isEditing, loading, saving, saveError,
@@ -365,7 +398,8 @@ const loadFromGitHub = useCallback(async () => {
       updateBracketConnections,
       addGroup, updateGroup, deleteGroup,
       generateGroupMatches, getTeamById, getGroupStandings, withdrawTeam,
-      refreshData: loadFromGitHub,
+      refreshData: loadFromSupabase,
+      backups, refreshBackups, createBackup, restoreBackup,
     }}>
       {children}
     </TournamentContext.Provider>

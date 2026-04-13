@@ -2,35 +2,24 @@ import React, { useState, useRef } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
 import { motion } from 'framer-motion';
-import { Shield, LogIn, Settings, Upload, Music, Github, CheckCircle, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Shield, LogIn, Settings, Upload, Music, CheckCircle, AlertCircle, Loader2, RefreshCw, DatabaseBackup } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import {
-  getGitHubConfig,
-  saveGitHubConfig,
-  clearGitHubConfig,
-  isGitHubConfigured,
-  GitHubConfig,
-} from '@/integrations/github/storage';
 
 const Admin: React.FC = () => {
-  const { isAdmin, login, data, updateSettings, toggleEditing, isEditing, saving, saveError, refreshData } = useTournament();
-  const [token, setToken] = useState('');
+  const { isAdmin, login, data, updateSettings, toggleEditing, isEditing, saving, saveError, refreshData, backups, refreshBackups, createBackup, restoreBackup } = useTournament();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [backupNote, setBackupNote] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const musicFileRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState(data.settings);
-
-  // ── GitHub config state ─────────────────────────────────────────────────
-  const [ghConfig, setGhConfig] = useState<GitHubConfig>(() =>
-    getGitHubConfig() ?? { owner: '', repo: '', branch: 'main', token: '' }
-  );
-  const [ghSaved, setGhSaved] = useState(isGitHubConfigured());
   const [refreshing, setRefreshing] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(token.trim());
+      await login(email.trim(), password);
       setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка авторизации');
@@ -50,25 +39,16 @@ const Admin: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleSaveGitHub = () => {
-    if (!ghConfig.owner || !ghConfig.repo || !ghConfig.token) {
-      alert('Заполните owner, repo и token');
-      return;
-    }
-    saveGitHubConfig(ghConfig);
-    setGhSaved(true);
-  };
-
-  const handleClearGitHub = () => {
-    clearGitHubConfig();
-    setGhConfig({ owner: '', repo: '', branch: 'main', token: '' });
-    setGhSaved(false);
-  };
-
   const handleRefresh = async () => {
     setRefreshing(true);
     await refreshData();
+    await refreshBackups();
     setRefreshing(false);
+  };
+
+  const handleCreateBackup = async () => {
+    await createBackup(backupNote.trim() || 'manual backup');
+    setBackupNote('');
   };
 
   if (!isAdmin) {
@@ -79,7 +59,8 @@ const Admin: React.FC = () => {
             <Shield className="mx-auto mb-4 text-primary" size={48} />
             <h1 className="font-display text-2xl font-bold text-center text-foreground mb-6">Вход в админ-панель</h1>
             <form onSubmit={handleLogin} className="space-y-4">
-              <input type="password" className="w-full bg-background border rounded-lg p-3 text-foreground" placeholder="GitHub token с правами записи" value={token} onChange={e => setToken(e.target.value)} />
+              <input type="email" className="w-full bg-background border rounded-lg p-3 text-foreground" placeholder="admin@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+              <input type="password" className="w-full bg-background border rounded-lg p-3 text-foreground" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} />
               {error && <p className="text-destructive text-sm">{error}</p>}
               <button type="submit" className="btn-primary-gradient w-full py-3 rounded-lg flex items-center justify-center gap-2">
                 <LogIn size={18} /> Войти
@@ -100,7 +81,7 @@ const Admin: React.FC = () => {
             {/* Save status indicator */}
             {saving && (
               <span className="flex items-center gap-1 text-xs text-primary font-heading">
-                <Loader2 size={14} className="animate-spin" /> Сохранение в GitHub…
+                <Loader2 size={14} className="animate-spin" /> Сохранение в Supabase…
               </span>
             )}
             {!saving && saveError && (
@@ -108,12 +89,7 @@ const Admin: React.FC = () => {
                 <AlertCircle size={14} /> Ошибка: {saveError}
               </span>
             )}
-            {!saving && !saveError && ghSaved && (
-              <span className="flex items-center gap-1 text-xs text-green-400 font-heading">
-                <CheckCircle size={14} /> GitHub подключён
-              </span>
-            )}
-            <button onClick={handleRefresh} className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors" title="Обновить данные из GitHub">
+            <button onClick={handleRefresh} className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors" title="Обновить данные из Supabase">
               <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Обновить
             </button>
             <button onClick={toggleEditing} className={`px-4 py-2 rounded-lg font-heading font-semibold transition-all ${isEditing ? 'btn-primary-gradient' : 'bg-card border text-muted-foreground'}`}>
@@ -143,86 +119,43 @@ const Admin: React.FC = () => {
           ))}
         </div>
 
-        {/* ── GitHub Config ─────────────────────────────────────────────── */}
+        {/* ── Backups ───────────────────────────────────────────────────── */}
         <div className="glass-card rounded-2xl p-6 mb-8">
           <h2 className="font-heading text-xl font-bold text-foreground mb-2 flex items-center gap-2">
-            <Github size={22} className="text-primary" /> Подключение GitHub
+            <DatabaseBackup size={22} className="text-primary" /> Бэкапы и откат
           </h2>
           <p className="text-sm text-muted-foreground mb-5">
-            Укажи свой репозиторий и Personal Access Token — тогда все изменения будут автоматически
-            сохраняться в <code className="bg-muted px-1 rounded text-xs">public/data.json</code> и
-            становиться видны всем посетителям через ~1–2 минуты (после деплоя GitHub Actions).
+            Создавайте снапшоты перед крупными изменениями. При откате система восстановит все данные
+            (команды, матчи, настройки) из выбранного бэкапа.
           </p>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">GitHub username (owner)</label>
-              <input
-                className="w-full bg-background border rounded-lg p-3 text-foreground font-mono text-sm"
-                placeholder="например: myusername"
-                value={ghConfig.owner}
-                onChange={e => setGhConfig(p => ({ ...p, owner: e.target.value.trim() }))}
-              />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Название репозитория</label>
-              <input
-                className="w-full bg-background border rounded-lg p-3 text-foreground font-mono text-sm"
-                placeholder="например: tournament-site"
-                value={ghConfig.repo}
-                onChange={e => setGhConfig(p => ({ ...p, repo: e.target.value.trim() }))}
-              />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Ветка</label>
-              <input
-                className="w-full bg-background border rounded-lg p-3 text-foreground font-mono text-sm"
-                placeholder="main"
-                value={ghConfig.branch}
-                onChange={e => setGhConfig(p => ({ ...p, branch: e.target.value.trim() }))}
-              />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">
-                Personal Access Token{' '}
-                <a
-                  href="https://github.com/settings/tokens/new?scopes=repo&description=NPC+Tournament+Admin"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-primary underline text-xs ml-1"
-                >
-                  создать токен →
-                </a>
-              </label>
-              <input
-                type="password"
-                className="w-full bg-background border rounded-lg p-3 text-foreground font-mono text-sm"
-                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                value={ghConfig.token}
-                onChange={e => setGhConfig(p => ({ ...p, token: e.target.value.trim() }))}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Нужен scope: <code className="bg-muted px-1 rounded">repo</code> (или <code className="bg-muted px-1 rounded">contents: write</code> для fine-grained)</p>
-            </div>
-          </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={handleSaveGitHub} className="btn-primary-gradient px-5 py-2 rounded-lg flex items-center gap-2">
-              <CheckCircle size={16} /> Сохранить конфигурацию
+            <input
+              className="flex-1 bg-background border rounded-lg p-3 text-foreground text-sm"
+              placeholder="Комментарий к бэкапу (например: перед финальными сетками)"
+              value={backupNote}
+              onChange={e => setBackupNote(e.target.value)}
+            />
+            <button onClick={handleCreateBackup} className="btn-primary-gradient px-5 py-2 rounded-lg flex items-center gap-2">
+              <CheckCircle size={16} /> Создать бэкап
             </button>
-            {ghSaved && (
-              <button onClick={handleClearGitHub} className="px-5 py-2 border rounded-lg text-muted-foreground hover:text-destructive transition-colors text-sm">
-                Сбросить
-              </button>
-            )}
           </div>
-          {ghSaved && (
-            <p className="text-xs text-green-400 mt-3 flex items-center gap-1">
-              <CheckCircle size={12} /> Конфигурация сохранена в этом браузере. Данные будут автоматически публиковаться в GitHub.
-            </p>
-          )}
-          {!ghSaved && (
-            <p className="text-xs text-amber-400 mt-3 flex items-center gap-1">
-              <AlertCircle size={12} /> Без GitHub конфигурации изменения хранятся только в этом браузере (localStorage).
-            </p>
-          )}
+          <div className="mt-4 space-y-2">
+            {backups.length === 0 && <p className="text-xs text-muted-foreground">Бэкапов пока нет.</p>}
+            {backups.map(backup => (
+              <div key={backup.id} className="flex items-center justify-between gap-3 bg-background/50 border rounded-lg px-3 py-2">
+                <div className="min-w-0">
+                  <p className="text-sm text-foreground truncate">{backup.note || 'snapshot'}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(backup.createdAt).toLocaleString()} · {backup.createdBy}</p>
+                </div>
+                <button
+                  onClick={() => restoreBackup(backup.id)}
+                  className="px-3 py-1.5 border rounded-lg text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Восстановить
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* ── Site Settings ─────────────────────────────────────────────── */}
