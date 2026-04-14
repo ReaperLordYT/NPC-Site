@@ -94,6 +94,7 @@ export interface FreePlayer {
 export interface SiteSettings {
   discordLink: string;
   googleFormLink: string;
+  freePlayerFormLink: string;
   tournamentName: string;
   tournamentDates: string;
   rulesMode: 'page' | 'link';

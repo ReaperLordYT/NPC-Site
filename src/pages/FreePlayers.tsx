@@ -1,11 +1,12 @@
 import React from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, FileText } from 'lucide-react';
 
 const FreePlayers: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
   const players = data.settings.freePlayers;
+  const freePlayerFormLink = data.settings.freePlayerFormLink?.trim();
 
   const updatePlayer = (id: string, field: 'nickname' | 'discord' | 'steam' | 'position' | 'mmr', value: string) => {
     updateSettings({
@@ -48,6 +49,19 @@ const FreePlayers: React.FC = () => {
             </button>
           )}
         </div>
+
+        {freePlayerFormLink && (
+          <div className="mb-6">
+            <a
+              href={freePlayerFormLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary-gradient px-6 py-3 rounded-lg inline-flex items-center gap-2"
+            >
+              <FileText size={18} /> Подать заявку как свободный игрок
+            </a>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {players.map(player => (

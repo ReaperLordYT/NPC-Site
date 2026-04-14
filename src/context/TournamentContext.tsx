@@ -16,6 +16,7 @@ import {
 const defaultSettings: SiteSettings = {
   discordLink: 'https://discord.gg/npcalert',
   googleFormLink: 'https://docs.google.com/forms/d/1M-m6MBHP49yfmJiNrY-egpyf-K6w34qoetGS6nwCirE/edit#responses',
+  freePlayerFormLink: '',
   tournamentName: 'BLANK CHAMPIONSHIP',
   tournamentDates: '28.03.2026 – 29.03.2026',
   rulesMode: 'page',

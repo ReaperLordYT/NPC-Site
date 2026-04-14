@@ -180,6 +180,10 @@ const Admin: React.FC = () => {
               <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.googleFormLink} onChange={e => setSettings(p => ({ ...p, googleFormLink: e.target.value }))} />
             </div>
             <div>
+              <label className="text-sm text-muted-foreground mb-1 block">Форма для свободных игроков</label>
+              <input className="w-full bg-background border rounded-lg p-3 text-foreground" placeholder="https://docs.google.com/forms/..." value={settings.freePlayerFormLink} onChange={e => setSettings(p => ({ ...p, freePlayerFormLink: e.target.value }))} />
+            </div>
+            <div>
               <label className="text-sm text-muted-foreground mb-1 block">Контакт админа 1</label>
               <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.contactAdmin1} onChange={e => setSettings(p => ({ ...p, contactAdmin1: e.target.value }))} />
             </div>
