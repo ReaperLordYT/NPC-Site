@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Sun, Moon, Edit, LogOut, Volume2, VolumeX, Volume1, Music } from 'lucide-react';
-import { useTheme } from '@/context/ThemeContext';
+import { Menu, X, Edit, LogOut, Volume2, VolumeX, Volume1, Music } from 'lucide-react';
 import { useTournament } from '@/context/TournamentContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -44,7 +43,6 @@ function getAudio(url: string): HTMLAudioElement {
 }
 
 const Header: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
   const { isAdmin, isEditing, toggleEditing, logout, data } = useTournament();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
@@ -243,9 +241,6 @@ const Header: React.FC = () => {
               <AdminShieldIcon />
             </Link>
           )}
-          <button onClick={toggleTheme} className="p-2 text-muted-foreground hover:text-foreground rounded-md">
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
           <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 text-foreground">
             <Menu size={22} />
           </button>
