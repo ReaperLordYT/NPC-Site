@@ -164,8 +164,17 @@ const Admin: React.FC = () => {
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Название турнира</label>
+              <label className="text-sm text-muted-foreground mb-1 block">Название турнира (и заголовок вкладки браузера)</label>
               <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.tournamentName} onChange={e => setSettings(p => ({ ...p, tournamentName: e.target.value }))} />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-sm text-muted-foreground mb-1 block">Страница «Организаторы»: текст под заголовком</label>
+              <input
+                className="w-full bg-background border rounded-lg p-3 text-foreground"
+                value={settings.organizersIntro}
+                onChange={e => setSettings(p => ({ ...p, organizersIntro: e.target.value }))}
+                placeholder="Команда, которая стоит за NPC CHAMPIONSHIP"
+              />
             </div>
             <div>
               <label className="text-sm text-muted-foreground mb-1 block">Даты</label>

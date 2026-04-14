@@ -35,6 +35,11 @@ const AppInner: React.FC = () => {
     void refreshData();
   }, [location.pathname, refreshData]);
 
+  React.useEffect(() => {
+    const name = data.settings.tournamentName?.trim();
+    document.title = name || "NPC CHAMPIONSHIP";
+  }, [data.settings.tournamentName]);
+
   if (loading) return <LoadingScreen />;
   const maintenanceEnabled = data.settings.maintenanceEnabled;
   const isAdminRoute = location.pathname === "/admin";

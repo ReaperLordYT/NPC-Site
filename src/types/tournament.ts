@@ -102,6 +102,8 @@ export interface SiteSettings {
   contactAdmin1: string;
   contactAdmin2: string;
   heroSubtitle: string;
+  /** Подзаголовок на странице «Организаторы» */
+  organizersIntro: string;
   aboutText: string;
   aboutText2: string;
   registrationDeadlineText: string;
