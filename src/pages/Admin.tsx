@@ -183,14 +183,6 @@ const Admin: React.FC = () => {
               <label className="text-sm text-muted-foreground mb-1 block">Форма для свободных игроков</label>
               <input className="w-full bg-background border rounded-lg p-3 text-foreground" placeholder="https://docs.google.com/forms/..." value={settings.freePlayerFormLink} onChange={e => setSettings(p => ({ ...p, freePlayerFormLink: e.target.value }))} />
             </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Контакт админа 1</label>
-              <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.contactAdmin1} onChange={e => setSettings(p => ({ ...p, contactAdmin1: e.target.value }))} />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Контакт админа 2</label>
-              <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.contactAdmin2} onChange={e => setSettings(p => ({ ...p, contactAdmin2: e.target.value }))} />
-            </div>
             <div className="md:col-span-2">
               <label className="text-sm text-muted-foreground mb-2 block">Контакты (для страницы контактов и футера)</label>
               <div className="space-y-2">
@@ -261,17 +253,6 @@ const Admin: React.FC = () => {
                 className="w-full bg-background border rounded-lg p-3 text-foreground min-h-[88px]"
                 value={settings.registrationHowToText}
                 onChange={e => setSettings(p => ({ ...p, registrationHowToText: e.target.value }))}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-1 block">Правила регистрации (по одной строке)</label>
-              <textarea
-                className="w-full bg-background border rounded-lg p-3 text-foreground min-h-[140px] font-mono text-xs"
-                value={settings.registrationRules.join('\n')}
-                onChange={e => setSettings(p => ({
-                  ...p,
-                  registrationRules: e.target.value.split('\n').map(x => x.trim()).filter(Boolean),
-                }))}
               />
             </div>
             <div>

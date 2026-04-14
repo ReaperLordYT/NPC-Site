@@ -50,18 +50,31 @@ const FreePlayers: React.FC = () => {
           )}
         </div>
 
-        {freePlayerFormLink && (
-          <div className="mb-6">
+        <div className="mb-8 glass-card rounded-xl p-6 text-center">
+          <p className="text-lg text-muted-foreground">
+            У тебя нет команды? Не беда - подай заявку как свободный игрок
+          </p>
+          {freePlayerFormLink && (
             <a
               href={freePlayerFormLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary-gradient px-6 py-3 rounded-lg inline-flex items-center gap-2"
+              className="btn-primary-gradient mt-4 px-6 py-3 rounded-lg inline-flex items-center gap-2"
             >
               <FileText size={18} /> Подать заявку как свободный игрок
             </a>
-          </div>
-        )}
+          )}
+          {!freePlayerFormLink && isAdmin && (
+            <p className="text-xs text-muted-foreground mt-3">
+              Добавьте ссылку формы в админке: "Форма для свободных игроков".
+            </p>
+          )}
+          {!freePlayerFormLink && !isAdmin && (
+            <p className="text-xs text-muted-foreground mt-3">
+              Форма заявки появится чуть позже.
+            </p>
+          )}
+        </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {players.map(player => (

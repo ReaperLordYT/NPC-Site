@@ -62,6 +62,11 @@ const Index: React.FC = () => {
             <a href={settings.googleFormLink} target="_blank" rel="noopener noreferrer" className="btn-primary-gradient px-8 py-3 rounded-lg text-lg inline-flex items-center gap-2">
               <Users size={20} /> Регистрация команды
             </a>
+            {settings.freePlayerFormLink?.trim() && (
+              <a href={settings.freePlayerFormLink} target="_blank" rel="noopener noreferrer" className="btn-primary-gradient px-8 py-3 rounded-lg text-lg inline-flex items-center gap-2">
+                <Users size={20} /> Я свободный игрок
+              </a>
+            )}
             <a href={settings.discordLink} target="_blank" rel="noopener noreferrer" className="px-8 py-3 rounded-lg border border-border bg-card/50 hover:bg-card text-foreground font-heading font-semibold inline-flex items-center gap-2 transition-colors">
               <MessageCircle size={20} /> Discord
             </a>
