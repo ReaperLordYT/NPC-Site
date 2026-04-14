@@ -28,7 +28,7 @@ import FreePlayers from "./pages/FreePlayers";
 const queryClient = new QueryClient();
 
 const AppInner: React.FC = () => {
-  const { loading, data, refreshData } = useTournament();
+  const { loading, data, refreshData, isAdmin } = useTournament();
   const location = useLocation();
 
   React.useEffect(() => {
@@ -40,7 +40,7 @@ const AppInner: React.FC = () => {
   const isAdminRoute = location.pathname === "/admin";
   const isMaintenanceRoute = location.pathname === "/maintenance";
 
-  if (maintenanceEnabled && !isAdminRoute && !isMaintenanceRoute) {
+  if (maintenanceEnabled && !isAdmin && !isAdminRoute && !isMaintenanceRoute) {
     return <Navigate to="/maintenance" replace />;
   }
   if (!maintenanceEnabled && isMaintenanceRoute) {
