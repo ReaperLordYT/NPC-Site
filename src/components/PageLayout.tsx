@@ -51,7 +51,7 @@ const PageLayout: React.FC<{ children: React.ReactNode; hideFooter?: boolean }> 
       <div className="fixed inset-0 bg-background/70 pointer-events-none z-0" />
       <div
         ref={catRef}
-        className={`fixed left-[-6px] bottom-8 z-[5] pointer-events-none select-none hidden md:block transition-transform duration-500 ${
+        className={`fixed left-0 bottom-8 z-[120] pointer-events-none select-none hidden md:block transition-transform duration-500 ${
           showCat ? 'translate-x-0' : '-translate-x-[120%]'
         }`}
       >
@@ -59,7 +59,7 @@ const PageLayout: React.FC<{ children: React.ReactNode; hideFooter?: boolean }> 
           src={catPeekRight}
           alt=""
           aria-hidden="true"
-          className={`w-[170px] lg:w-[210px] opacity-90 ${showCat ? 'animate-cat-peek' : ''}`}
+          className={`w-[170px] lg:w-[210px] opacity-90 -scale-x-100 -translate-x-[38%] ${showCat ? 'animate-cat-peek' : ''}`}
         />
       </div>
       <div className="relative z-10">
