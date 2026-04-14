@@ -59,7 +59,7 @@ const PageLayout: React.FC<{ children: React.ReactNode; hideFooter?: boolean }> 
           src={catPeekRight}
           alt=""
           aria-hidden="true"
-          className={`w-[170px] lg:w-[210px] opacity-90 -scale-x-100 -translate-x-[38%] ${showCat ? 'animate-cat-peek' : ''}`}
+          className={`w-[170px] lg:w-[210px] opacity-90 ${showCat ? 'animate-cat-peek' : ''}`}
         />
       </div>
       <div className="relative z-10">
