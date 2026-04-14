@@ -46,6 +46,8 @@ const Header: React.FC = () => {
   const { isAdmin, isEditing, toggleEditing, logout, data } = useTournament();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const logoClickCountRef = useRef(0);
+  const logoClickResetTimerRef = useRef<number | null>(null);
 
   const musicUrl = data.settings.musicUrl;
 
@@ -147,10 +149,29 @@ const Header: React.FC = () => {
   const isPlaying = enabled && !!musicUrl;
   const VolumeIcon = muted ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
+  useEffect(() => {
+    return () => {
+      if (logoClickResetTimerRef.current) window.clearTimeout(logoClickResetTimerRef.current);
+    };
+  }, []);
+
+  const handleLogoClick = () => {
+    logoClickCountRef.current += 1;
+    if (logoClickResetTimerRef.current) window.clearTimeout(logoClickResetTimerRef.current);
+    logoClickResetTimerRef.current = window.setTimeout(() => {
+      logoClickCountRef.current = 0;
+    }, 4000);
+
+    if (logoClickCountRef.current >= 7) {
+      logoClickCountRef.current = 0;
+      window.dispatchEvent(new Event('npc-cat-peek-show'));
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b bg-background/80">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <Link to="/" className="font-display text-xl font-bold gradient-text tracking-wider">
+        <Link to="/" onClick={handleLogoClick} className="font-display text-xl font-bold gradient-text tracking-wider">
           Blank
         </Link>
 
