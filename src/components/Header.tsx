@@ -10,6 +10,7 @@ const navItems = [
   { path: '/registration', label: 'Регистрация' },
   { path: '/rules', label: 'Регламент' },
   { path: '/teams', label: 'Команды' },
+  { path: '/free-players', label: 'Свободные игроки' },
   { path: '/tournament', label: 'Турнир' },
   { path: '/schedule', label: 'Расписание' },
   { path: '/organizers', label: 'Организаторы' },

@@ -23,6 +23,7 @@ const Footer: React.FC = () => {
               <Link to="/registration" className="text-muted-foreground hover:text-primary transition-colors">Регистрация</Link>
               <Link to="/rules" className="text-muted-foreground hover:text-primary transition-colors">Регламент</Link>
               <Link to="/teams" className="text-muted-foreground hover:text-primary transition-colors">Команды</Link>
+              <Link to="/free-players" className="text-muted-foreground hover:text-primary transition-colors">Свободные игроки</Link>
               <Link to="/tournament" className="text-muted-foreground hover:text-primary transition-colors">Турнир</Link>
               <Link to="/schedule" className="text-muted-foreground hover:text-primary transition-colors">Расписание</Link>
               <Link to="/organizers" className="text-muted-foreground hover:text-primary transition-colors">Организаторы</Link>

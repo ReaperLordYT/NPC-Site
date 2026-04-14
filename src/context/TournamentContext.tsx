@@ -64,6 +64,7 @@ const defaultSettings: SiteSettings = {
     { id: '1', name: '4 поющих птицы (@fakalin)', role: 'Организатор' },
     { id: '2', name: 'дафна (@dmcmlll)', role: 'Организатор' },
   ],
+  freePlayers: [],
   contactsList: ['4 callings bird (@fakalin)', 'daphne (@dmcmlll)'],
   footerCopyright: '© 2026 Blank Championship. Все права защищены.',
   maintenanceEnabled: false,

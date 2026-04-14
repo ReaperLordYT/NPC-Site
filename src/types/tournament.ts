@@ -82,6 +82,14 @@ export interface InfoCard { id: string; label: string; desc: string; }
 export interface FormatStage { id: string; title: string; desc: string; }
 export interface FaqItem { id: string; q: string; a: string; }
 export interface StaffMember { id: string; name: string; role: string; }
+export interface FreePlayer {
+  id: string;
+  nickname: string;
+  discord: string;
+  steam: string;
+  position: string;
+  mmr: number;
+}
 
 export interface SiteSettings {
   discordLink: string;
@@ -110,6 +118,7 @@ export interface SiteSettings {
   formatStages: FormatStage[];
   faqItems: FaqItem[];
   staffMembers: StaffMember[];
+  freePlayers: FreePlayer[];
   contactsList: string[];
   footerCopyright: string;
   maintenanceEnabled: boolean;
