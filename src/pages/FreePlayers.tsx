@@ -1,7 +1,7 @@
 import React from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
-import { Plus, Trash2, FileText, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, FileText, ExternalLink, Swords, Sparkles, Shield, HelpingHand, HandHeart } from 'lucide-react';
 
 const FreePlayers: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
@@ -55,6 +55,25 @@ const FreePlayers: React.FC = () => {
     if (/^\d{16,20}$/.test(raw) && baseIfId) return baseIfId(raw);
     return baseIfId ? baseIfId(raw) : raw;
   };
+
+  const normalizeRole = (pos?: string) => {
+    const p = (pos ?? '').trim().toLowerCase();
+    if (!p) return '';
+    if (/(^|[^a-zа-я0-9])(carry|керри|кэрри|pos\s*1|позици[яи]\s*1|1)([^a-zа-я0-9]|$)/i.test(p)) return 'carry';
+    if (/(^|[^a-zа-я0-9])(mid|мид|pos\s*2|позици[яи]\s*2|2)([^a-zа-я0-9]|$)/i.test(p)) return 'mid';
+    if (/(^|[^a-zа-я0-9])(offlane|offlaner|оффлейн|оффлейнер|hardlane|pos\s*3|позици[яи]\s*3|3)([^a-zа-я0-9]|$)/i.test(p)) return 'offlane';
+    if (/(^|[^a-zа-я0-9])(soft\s*support|support\s*4|pos\s*4|позици[яи]\s*4|4)([^a-zа-я0-9]|$)/i.test(p)) return 'soft';
+    if (/(^|[^a-zа-я0-9])(full\s*support|hard\s*support|support\s*5|pos\s*5|позици[яи]\s*5|5)([^a-zа-я0-9]|$)/i.test(p)) return 'hard';
+    return p;
+  };
+
+  const roleItems = [
+    { id: 'carry', label: 'Carry', Icon: Swords },
+    { id: 'mid', label: 'Mid', Icon: Sparkles },
+    { id: 'offlane', label: 'Offlaner', Icon: Shield },
+    { id: 'soft', label: 'Soft Support', Icon: HelpingHand },
+    { id: 'hard', label: 'Full Support', Icon: HandHeart },
+  ] as const;
 
   return (
     <PageLayout>
@@ -141,7 +160,18 @@ const FreePlayers: React.FC = () => {
                     onChange={e => updatePlayer(player.id, 'dotabuff', e.target.value)}
                     placeholder="Dotabuff (ссылка или ID)"
                   />
-                  <input className="w-full bg-background border rounded-lg p-2 text-sm" value={player.position} onChange={e => updatePlayer(player.id, 'position', e.target.value)} placeholder="Позиция" />
+                  <select
+                    className="w-full bg-background border rounded-lg p-2 text-sm"
+                    value={normalizeRole(player.position) || ''}
+                    onChange={e => updatePlayer(player.id, 'position', e.target.value)}
+                  >
+                    <option value="">Позиция (не указано)</option>
+                    <option value="carry">Carry</option>
+                    <option value="mid">Mid</option>
+                    <option value="offlane">Offlaner</option>
+                    <option value="soft">Soft Support</option>
+                    <option value="hard">Full Support</option>
+                  </select>
                   <input className="w-full bg-background border rounded-lg p-2 text-sm" type="number" value={player.mmr} onChange={e => updatePlayer(player.id, 'mmr', e.target.value)} placeholder="MMR" />
                   <select
                     className="w-full bg-background border rounded-lg p-2 text-sm"
@@ -182,6 +212,29 @@ const FreePlayers: React.FC = () => {
                   </p>
                   <p className="text-muted-foreground">Позиция: <span className="text-foreground">{player.position || '—'}</span></p>
                   <p className="text-muted-foreground">MMR: <span className="text-foreground">{player.mmr || 0}</span></p>
+                  <div className="pt-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {roleItems.map(({ id, label, Icon }) => {
+                        const active = normalizeRole(player.position) === id;
+                        return (
+                          <div
+                            key={id}
+                            className={`role-split ${active ? 'is-active' : ''}`}
+                            title={label}
+                            aria-label={label}
+                          >
+                            <span className="role-split__half role-split__left">
+                              <Icon size={18} />
+                            </span>
+                            <span className="role-split__half role-split__right">
+                              <Icon size={18} />
+                            </span>
+                            <span className="role-split__label">{label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                   {(steamUrl || dotabuffUrl) && (
                     <div className="flex gap-2 flex-wrap pt-1">
                       {steamUrl && (
