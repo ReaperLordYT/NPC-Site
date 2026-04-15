@@ -217,10 +217,10 @@ const FreePlayers: React.FC = () => {
                             aria-pressed={active}
                           >
                             <span className="role-split__half role-split__left">
-                              <Icon size={18} />
+                              <Icon size={22} />
                             </span>
                             <span className="role-split__half role-split__right">
-                              <Icon size={18} />
+                              <Icon size={22} />
                             </span>
                             <span className="role-split__label">{label}</span>
                           </button>
@@ -239,7 +239,7 @@ const FreePlayers: React.FC = () => {
                   </select>
                 </div>
               ) : (
-                <div className="space-y-3 text-sm">
+                <div className="space-y-3 text-base">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-heading font-bold text-lg text-foreground">{player.nickname}</p>
                     <span
@@ -279,15 +279,15 @@ const FreePlayers: React.FC = () => {
                             aria-label={active ? label : 'Не выбрано'}
                           >
                             <span className="role-split__half role-split__left">
-                              <Icon size={18} />
+                              <Icon size={22} />
                             </span>
                             <span className="role-split__half role-split__right">
-                              <Icon size={18} />
+                              <Icon size={22} />
                             </span>
                             {active && <span className="role-split__label">{label}</span>}
                             {!active && (
                               <span className="role-split__lock" aria-hidden="true">
-                                <Lock size={12} />
+                                <Lock size={14} />
                               </span>
                             )}
                           </div>
@@ -303,7 +303,7 @@ const FreePlayers: React.FC = () => {
                           href={steamUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-1.5 text-xs border rounded-lg text-muted-foreground hover:text-primary hover:border-primary flex items-center gap-1 transition-colors"
+                          className="px-3 py-2 text-sm border rounded-lg text-muted-foreground hover:text-primary hover:border-primary flex items-center gap-1 transition-colors"
                         >
                           Steam <ExternalLink size={12} />
                         </a>
@@ -313,7 +313,7 @@ const FreePlayers: React.FC = () => {
                           href={dotabuffUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-1.5 text-xs border rounded-lg text-muted-foreground hover:text-primary hover:border-primary flex items-center gap-1 transition-colors"
+                          className="px-3 py-2 text-sm border rounded-lg text-muted-foreground hover:text-primary hover:border-primary flex items-center gap-1 transition-colors"
                         >
                           DotaBuff <ExternalLink size={12} />
                         </a>
