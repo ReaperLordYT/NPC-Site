@@ -89,7 +89,12 @@ export interface FreePlayer {
   discordDmLink?: string;
   steam: string;
   dotabuff?: string;
+  /**
+   * Legacy single role/text. Kept for backwards compatibility with existing data.
+   * New UI uses `roles` for multi-select.
+   */
   position: string;
+  roles?: Array<'carry' | 'mid' | 'offlane' | 'soft' | 'hard'>;
   mmr: number;
   status?: 'free' | 'busy';
 }

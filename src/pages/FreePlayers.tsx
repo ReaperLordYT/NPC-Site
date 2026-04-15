@@ -37,6 +37,7 @@ const FreePlayers: React.FC = () => {
           steam: '',
           dotabuff: '',
           position: '',
+          roles: [],
           mmr: 0,
           status: 'free',
         },
@@ -46,6 +47,21 @@ const FreePlayers: React.FC = () => {
 
   const deletePlayer = (id: string) => {
     updateSettings({ freePlayers: players.filter(player => player.id !== id) });
+  };
+
+  const updatePlayerRoles = (id: string, roles: Array<'carry' | 'mid' | 'offlane' | 'soft' | 'hard'>) => {
+    const next = Array.from(new Set(roles));
+    updateSettings({
+      freePlayers: players.map(player =>
+        player.id === id
+          ? {
+              ...player,
+              roles: next,
+              position: next.join(', '),
+            }
+          : player
+      ),
+    });
   };
 
   const toExternalUrl = (value?: string, baseIfId?: (id: string) => string) => {
@@ -65,6 +81,27 @@ const FreePlayers: React.FC = () => {
     if (/(^|[^a-zа-я0-9])(soft\s*support|support\s*4|pos\s*4|позици[яи]\s*4|4)([^a-zа-я0-9]|$)/i.test(p)) return 'soft';
     if (/(^|[^a-zа-я0-9])(full\s*support|hard\s*support|support\s*5|pos\s*5|позици[яи]\s*5|5)([^a-zа-я0-9]|$)/i.test(p)) return 'hard';
     return p;
+  };
+
+  const toRoles = (player: any): Array<'carry' | 'mid' | 'offlane' | 'soft' | 'hard'> => {
+    const direct = Array.isArray(player.roles) ? (player.roles as string[]) : [];
+    const known = new Set(['carry', 'mid', 'offlane', 'soft', 'hard']);
+
+    const cleanedDirect = direct
+      .map(r => normalizeRole(String(r)))
+      .filter(r => known.has(r)) as Array<'carry' | 'mid' | 'offlane' | 'soft' | 'hard'>;
+
+    if (cleanedDirect.length) return Array.from(new Set(cleanedDirect));
+
+    const legacy = String(player.position ?? '');
+    const parts = legacy
+      .split(/[,/;|]+/g)
+      .map(s => s.trim())
+      .filter(Boolean);
+    const fromLegacy = parts
+      .map(p => normalizeRole(p))
+      .filter(r => known.has(r)) as Array<'carry' | 'mid' | 'offlane' | 'soft' | 'hard'>;
+    return Array.from(new Set(fromLegacy));
   };
 
   const roleItems = [
@@ -127,6 +164,7 @@ const FreePlayers: React.FC = () => {
               player.dotabuff,
               id => `https://www.dotabuff.com/players/${id}`
             );
+            const roles = toRoles(player);
 
             return (
             <div
@@ -160,18 +198,35 @@ const FreePlayers: React.FC = () => {
                     onChange={e => updatePlayer(player.id, 'dotabuff', e.target.value)}
                     placeholder="Dotabuff (ссылка или ID)"
                   />
-                  <select
-                    className="w-full bg-background border rounded-lg p-2 text-sm"
-                    value={normalizeRole(player.position) || ''}
-                    onChange={e => updatePlayer(player.id, 'position', e.target.value)}
-                  >
-                    <option value="">Позиция (не указано)</option>
-                    <option value="carry">Carry</option>
-                    <option value="mid">Mid</option>
-                    <option value="offlane">Offlaner</option>
-                    <option value="soft">Soft Support</option>
-                    <option value="hard">Full Support</option>
-                  </select>
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Роли (можно несколько)</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {roleItems.map(({ id, label, Icon }) => {
+                        const active = roles.includes(id);
+                        return (
+                          <button
+                            type="button"
+                            key={id}
+                            onClick={() => {
+                              const next = active ? roles.filter(r => r !== id) : [...roles, id];
+                              updatePlayerRoles(player.id, next);
+                            }}
+                            className={`role-split role-split--clickable ${active ? 'is-active' : ''}`}
+                            title={label}
+                            aria-pressed={active}
+                          >
+                            <span className="role-split__half role-split__left">
+                              <Icon size={18} />
+                            </span>
+                            <span className="role-split__half role-split__right">
+                              <Icon size={18} />
+                            </span>
+                            <span className="role-split__label">{label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                   <input className="w-full bg-background border rounded-lg p-2 text-sm" type="number" value={player.mmr} onChange={e => updatePlayer(player.id, 'mmr', e.target.value)} placeholder="MMR" />
                   <select
                     className="w-full bg-background border rounded-lg p-2 text-sm"
@@ -212,29 +267,30 @@ const FreePlayers: React.FC = () => {
                   </p>
                   <p className="text-muted-foreground">Позиция: <span className="text-foreground">{player.position || '—'}</span></p>
                   <p className="text-muted-foreground">MMR: <span className="text-foreground">{player.mmr || 0}</span></p>
-                  <div className="pt-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {roleItems.map(({ id, label, Icon }) => {
-                        const active = normalizeRole(player.position) === id;
-                        return (
-                          <div
-                            key={id}
-                            className={`role-split ${active ? 'is-active' : ''}`}
-                            title={label}
-                            aria-label={label}
-                          >
-                            <span className="role-split__half role-split__left">
-                              <Icon size={18} />
-                            </span>
-                            <span className="role-split__half role-split__right">
-                              <Icon size={18} />
-                            </span>
-                            <span className="role-split__label">{label}</span>
-                          </div>
-                        );
-                      })}
+                  {roles.length > 0 && (
+                    <div className="pt-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {roleItems
+                          .filter(r => roles.includes(r.id))
+                          .map(({ id, label, Icon }) => (
+                            <div
+                              key={id}
+                              className="role-split is-active"
+                              title={label}
+                              aria-label={label}
+                            >
+                              <span className="role-split__half role-split__left">
+                                <Icon size={18} />
+                              </span>
+                              <span className="role-split__half role-split__right">
+                                <Icon size={18} />
+                              </span>
+                              <span className="role-split__label">{label}</span>
+                            </div>
+                          ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   {(steamUrl || dotabuffUrl) && (
                     <div className="flex gap-2 flex-wrap pt-1">
                       {steamUrl && (

@@ -233,6 +233,16 @@
     transition: border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
   }
 
+  .role-split--clickable {
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .role-split--clickable:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.35);
+  }
+
   .role-split.is-active {
     color: hsl(var(--primary));
     border-color: hsl(var(--primary) / 0.55);
