@@ -167,6 +167,43 @@
     transform-origin: bottom left;
     filter: drop-shadow(0 10px 18px hsl(0 0% 0% / 0.35));
   }
+
+  .rules-content {
+    @apply text-muted-foreground text-base leading-relaxed;
+  }
+
+  .rules-content h2 {
+    @apply font-heading text-2xl font-bold text-foreground mt-8 mb-4;
+  }
+
+  .rules-content h3 {
+    @apply font-heading text-xl font-bold text-foreground mt-6 mb-3;
+  }
+
+  .rules-content p {
+    @apply mb-3;
+  }
+
+  .rules-content ul,
+  .rules-content ol {
+    @apply mb-4 pl-5 space-y-1;
+  }
+
+  .rules-content ul {
+    list-style: disc;
+  }
+
+  .rules-content ol {
+    list-style: decimal;
+  }
+
+  .ProseMirror p.is-editor-empty:first-child::before {
+    content: 'Введите текст регламента...';
+    @apply text-muted-foreground;
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
 }
 
 @keyframes cat-peek-float {

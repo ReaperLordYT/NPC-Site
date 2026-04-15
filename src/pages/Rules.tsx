@@ -1,69 +1,18 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
-import EditableText from '@/components/EditableText';
 import { motion } from 'framer-motion';
-import { Shield, Users, AlertCircle, Trophy, ExternalLink, Link as LinkIcon, FileText } from 'lucide-react';
-
-const defaultSections = [
-  {
-    icon: Shield,
-    title: 'Правила участия',
-    content: [
-      'Суммарный рейтинг команды (5 игроков) не должен превышать 30 000 MMR.',
-      'У каждого игрока должен быть открытый профиль DotaBuff.',
-      'Игроки могут менять роли между матчами по решению команды.',
-      'Команда должна иметь минимум 5 основных игроков. Запасные разрешены.',
-      'Каждый игрок может быть заявлен только в одной команде.',
-      'Замена игрока возможна только до начала турнира и с согласия организаторов.',
-      'Капитан команды несёт полную ответственность за действия своего состава.',
-    ],
-  },
-  {
-    icon: Users,
-    title: 'Организационный регламент',
-    content: [
-      'Турнир проводится 28-29 марта 2026 года.',
-      'Все матчи проводятся на серверах Dota 2 (регион по согласованию).',
-      'Лобби создаётся организаторами или назначенным судьёй.',
-      'Команда должна быть готова к матчу в указанное время. Опоздание более 15 минут — техническое поражение.',
-      'Все спорные ситуации решаются организаторами. Решение организаторов окончательное.',
-      'Организаторы вправе изменить расписание с предварительным уведомлением команд.',
-      'Результаты матчей фиксируются скриншотами и/или записями.',
-    ],
-  },
-  {
-    icon: AlertCircle,
-    title: 'Правила поведения участников',
-    content: [
-      'Запрещены любые формы оскорблений, расизма, сексизма и дискриминации.',
-      'Запрещено использование читов, скриптов и любого стороннего ПО.',
-      'Запрещён коучинг во время матча (никто не должен подсказывать игрокам).',
-      'Запрещены договорные матчи.',
-      'Нарушение правил поведения может привести к дисквалификации команды.',
-      'Все участники обязаны проявлять уважение к соперникам и организаторам.',
-      'Общение в лобби и чате должно оставаться корректным.',
-    ],
-  },
-  {
-    icon: Trophy,
-    title: 'Формат турнира',
-    content: [
-      'Групповой этап: Round-Robin в группах. Матчи Bo2.',
-      'Система начисления очков: победа 2-0 = 3 очка, ничья 1-1 = 1 очко, поражение 0-2 = 0 очков.',
-      'Из каждой группы выходят 2 лучшие команды в плей-офф.',
-      'Плей-офф: Double Elimination (верхняя и нижняя сетка).',
-      'Матчи плей-офф проводятся в формате Bo1.',
-      'Гранд-финал проводится в формате Bo3.',
-      'Команда из верхней сетки имеет преимущество в гранд-финале.',
-      'Каждая команда имеет право на 1 паузу до 5 минут за карту.',
-    ],
-  },
-];
+import { ExternalLink, Link as LinkIcon, FileText, Save } from 'lucide-react';
+import RichTextEditor from '@/components/RichTextEditor';
 
 const Rules: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
   const rulesMode = data.settings.rulesMode || 'page';
+  const rulesContent = data.settings.rulesContent || '';
+  const rulesBannerImage = data.settings.rulesBannerImage || '';
+  const canEditRules = isAdmin && isEditing;
+
+  const trimmedRulesContent = useMemo(() => rulesContent.trim(), [rulesContent]);
 
   // If link mode and we have a link, redirect
   if (rulesMode === 'link' && data.settings.rulesLink) {
@@ -144,40 +93,71 @@ const Rules: React.FC = () => {
           </div>
         )}
 
-        <div className="max-w-4xl mx-auto space-y-8">
-          {defaultSections.map((section, i) => (
+        <div className="max-w-4xl mx-auto space-y-6">
+          {(rulesBannerImage || canEditRules) && (
             <motion.div
-              key={i}
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="glass-card rounded-2xl p-8 card-glow"
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-card rounded-2xl p-4"
             >
-              <h2 className="font-heading text-2xl font-bold mb-6 text-foreground flex items-center gap-3">
-                <section.icon className="text-primary" size={28} />
-                <EditableText
-                  value={section.title}
-                  onSave={() => {}}
-                  as="span"
-                  className=""
+              {rulesBannerImage ? (
+                <img
+                  src={rulesBannerImage}
+                  alt="Баннер регламента"
+                  className="w-full rounded-xl border border-border/60 object-cover max-h-[380px]"
                 />
-              </h2>
-              <ul className="space-y-3">
-                {section.content.map((item, j) => (
-                  <li key={j} className="flex items-start gap-3 text-muted-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-                    <EditableText
-                      value={item}
-                      onSave={() => {}}
-                      as="span"
-                      className="text-muted-foreground"
-                    />
-                  </li>
-                ))}
-              </ul>
+              ) : (
+                <div className="text-sm text-muted-foreground px-2 py-1">Добавьте ссылку на баннер регламента.</div>
+              )}
+
+              {canEditRules && (
+                <div className="mt-3">
+                  <label className="text-xs text-muted-foreground mb-1 block">Ссылка на баннер</label>
+                  <input
+                    className="w-full bg-background border rounded-lg p-2 text-foreground text-sm"
+                    placeholder="/rules-banner.png или https://..."
+                    value={rulesBannerImage}
+                    onChange={e => updateSettings({ rulesBannerImage: e.target.value })}
+                  />
+                </div>
+              )}
             </motion.div>
-          ))}
+          )}
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card rounded-2xl p-6 md:p-8"
+          >
+            {canEditRules ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    Выделите текст, чтобы появилось всплывающее меню форматирования (жирный, курсив и т.д.).
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => updateSettings({ rulesContent })}
+                    className="px-3 py-1.5 rounded-lg border text-xs font-heading text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                    title="Сохранить изменения регламента"
+                  >
+                    <Save size={14} /> Обновить
+                  </button>
+                </div>
+                <RichTextEditor
+                  value={rulesContent}
+                  onChange={(nextValue) => updateSettings({ rulesContent: nextValue })}
+                />
+              </div>
+            ) : (
+              <article
+                className="rules-content"
+                dangerouslySetInnerHTML={{
+                  __html: trimmedRulesContent || '<p>Регламент пока не заполнен.</p>',
+                }}
+              />
+            )}
+          </motion.div>
         </div>
       </div>
     </PageLayout>

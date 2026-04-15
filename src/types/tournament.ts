@@ -101,6 +101,8 @@ export interface SiteSettings {
   tournamentDates: string;
   rulesMode: 'page' | 'link';
   rulesLink: string;
+  rulesContent: string;
+  rulesBannerImage: string;
   contactAdmin1: string;
   contactAdmin2: string;
   heroSubtitle: string;
