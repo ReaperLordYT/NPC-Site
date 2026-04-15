@@ -1,7 +1,7 @@
 import React from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
-import { Plus, Trash2, FileText } from 'lucide-react';
+import { Plus, Trash2, FileText, ExternalLink } from 'lucide-react';
 
 const FreePlayers: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
@@ -10,7 +10,7 @@ const FreePlayers: React.FC = () => {
 
   const updatePlayer = (
     id: string,
-    field: 'nickname' | 'discord' | 'discordDmLink' | 'steam' | 'position' | 'mmr' | 'status',
+    field: 'nickname' | 'discord' | 'discordDmLink' | 'steam' | 'dotabuff' | 'position' | 'mmr' | 'status',
     value: string
   ) => {
     updateSettings({
@@ -35,6 +35,7 @@ const FreePlayers: React.FC = () => {
           discord: '',
           discordDmLink: '',
           steam: '',
+          dotabuff: '',
           position: '',
           mmr: 0,
           status: 'free',
@@ -45,6 +46,14 @@ const FreePlayers: React.FC = () => {
 
   const deletePlayer = (id: string) => {
     updateSettings({ freePlayers: players.filter(player => player.id !== id) });
+  };
+
+  const toExternalUrl = (value?: string, baseIfId?: (id: string) => string) => {
+    const raw = (value ?? '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^\d{16,20}$/.test(raw) && baseIfId) return baseIfId(raw);
+    return baseIfId ? baseIfId(raw) : raw;
   };
 
   return (
@@ -91,6 +100,14 @@ const FreePlayers: React.FC = () => {
             const isFree = playerStatus === 'free';
             const hasDiscordDmLink = !!player.discordDmLink?.trim();
             const shouldLinkDiscord = isFree && hasDiscordDmLink && !!player.discord?.trim();
+            const steamUrl = toExternalUrl(
+              player.steam,
+              id => `https://steamcommunity.com/profiles/${id}`
+            );
+            const dotabuffUrl = toExternalUrl(
+              player.dotabuff,
+              id => `https://www.dotabuff.com/players/${id}`
+            );
 
             return (
             <div
@@ -118,6 +135,12 @@ const FreePlayers: React.FC = () => {
                     placeholder="Ссылка на ЛС Discord (необязательно)"
                   />
                   <input className="w-full bg-background border rounded-lg p-2 text-sm" value={player.steam} onChange={e => updatePlayer(player.id, 'steam', e.target.value)} placeholder="Steam" />
+                  <input
+                    className="w-full bg-background border rounded-lg p-2 text-sm"
+                    value={player.dotabuff ?? ''}
+                    onChange={e => updatePlayer(player.id, 'dotabuff', e.target.value)}
+                    placeholder="Dotabuff (ссылка или ID)"
+                  />
                   <input className="w-full bg-background border rounded-lg p-2 text-sm" value={player.position} onChange={e => updatePlayer(player.id, 'position', e.target.value)} placeholder="Позиция" />
                   <input className="w-full bg-background border rounded-lg p-2 text-sm" type="number" value={player.mmr} onChange={e => updatePlayer(player.id, 'mmr', e.target.value)} placeholder="MMR" />
                   <select
@@ -157,9 +180,32 @@ const FreePlayers: React.FC = () => {
                       <span className="text-foreground">{player.discord || '—'}</span>
                     )}
                   </p>
-                  <p className="text-muted-foreground">Steam: <span className="text-foreground">{player.steam || '—'}</span></p>
                   <p className="text-muted-foreground">Позиция: <span className="text-foreground">{player.position || '—'}</span></p>
                   <p className="text-muted-foreground">MMR: <span className="text-foreground">{player.mmr || 0}</span></p>
+                  {(steamUrl || dotabuffUrl) && (
+                    <div className="flex gap-2 flex-wrap pt-1">
+                      {steamUrl && (
+                        <a
+                          href={steamUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 text-xs border rounded-lg text-muted-foreground hover:text-primary hover:border-primary flex items-center gap-1 transition-colors"
+                        >
+                          Steam <ExternalLink size={12} />
+                        </a>
+                      )}
+                      {dotabuffUrl && (
+                        <a
+                          href={dotabuffUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 text-xs border rounded-lg text-muted-foreground hover:text-primary hover:border-primary flex items-center gap-1 transition-colors"
+                        >
+                          DotaBuff <ExternalLink size={12} />
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

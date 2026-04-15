@@ -88,6 +88,7 @@ export interface FreePlayer {
   discord: string;
   discordDmLink?: string;
   steam: string;
+  dotabuff?: string;
   position: string;
   mmr: number;
   status?: 'free' | 'busy';
