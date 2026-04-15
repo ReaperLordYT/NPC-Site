@@ -6,7 +6,7 @@ import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
-import { Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Heading2, Heading3 } from 'lucide-react';
+import { Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Heading2, Heading3, Link2 } from 'lucide-react';
 
 interface RichTextEditorProps {
   value: string;
@@ -124,6 +124,22 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange }) => {
           title="Нумерованный список"
         >
           <ListOrdered size={15} />
+        </button>
+        <button
+          type="button"
+          className="h-8 px-2 rounded-md border border-border/70 bg-background/90 text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors text-xs inline-flex items-center gap-1"
+          onClick={() => editor.chain().focus().insertContent('<p>{{TEAM_BUTTON}}</p>').run()}
+          title="Вставить кнопку Team в текущем месте"
+        >
+          <Link2 size={13} /> Team
+        </button>
+        <button
+          type="button"
+          className="h-8 px-2 rounded-md border border-border/70 bg-background/90 text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors text-xs inline-flex items-center gap-1"
+          onClick={() => editor.chain().focus().insertContent('<p>{{SOLO_BUTTON}}</p>').run()}
+          title="Вставить кнопку Solo в текущем месте"
+        >
+          <Link2 size={13} /> Solo
         </button>
         <label className="ml-2 flex items-center gap-2 text-xs text-muted-foreground">
           Цвет

@@ -205,22 +205,16 @@
     pointer-events: none;
   }
 
-  .rules-quick-links {
-    @apply flex flex-wrap items-center justify-end gap-3 mb-4;
+  .rules-inline-link {
+    @apply inline-flex items-center gap-2 rounded-xl px-3 py-2 border border-border/80 bg-card/70 text-foreground font-heading font-semibold text-xl transition-colors no-underline;
   }
 
-  .rules-quick-link {
-    @apply inline-flex items-center gap-1.5 rounded-xl px-3 py-2 border border-border/80 bg-card/70 text-foreground font-heading font-semibold text-lg transition-colors;
-  }
-
-  .rules-quick-link:hover {
+  .rules-inline-link:hover {
     @apply border-primary/50 text-primary;
   }
 
-  @media (max-width: 768px) {
-    .rules-quick-links {
-      @apply justify-start;
-    }
+  .rules-inline-link-muted {
+    @apply text-muted-foreground border-border/60;
   }
 }
 

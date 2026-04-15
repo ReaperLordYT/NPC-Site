@@ -2,8 +2,12 @@ import React, { useMemo, useState } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
 import { motion } from 'framer-motion';
-import { ExternalLink, Link as LinkIcon, FileText, Save, RotateCcw, Pencil } from 'lucide-react';
+import { ExternalLink, Link as LinkIcon, FileText, Save, RotateCcw } from 'lucide-react';
 import RichTextEditor from '@/components/RichTextEditor';
+
+const DEFAULT_RULES_BANNER = '/rules-banner.png';
+const TEAM_BUTTON_TOKEN = '{{TEAM_BUTTON}}';
+const SOLO_BUTTON_TOKEN = '{{SOLO_BUTTON}}';
 
 const PROMO_BLOCK_HTML = `
 <p><strong>Blank &nbsp;&nbsp;&nbsp;&nbsp;&middot; &nbsp;&nbsp;&nbsp;&nbsp;"NPC Championship"</strong></p>
@@ -21,9 +25,9 @@ const Rules: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
   const rulesMode = data.settings.rulesMode || 'page';
   const rulesContent = data.settings.rulesContent || '';
-  const rulesBannerImage = data.settings.rulesBannerImage || '';
+  const rulesBannerImage = data.settings.rulesBannerImage || DEFAULT_RULES_BANNER;
   const canEditRules = isAdmin && isEditing;
-  const [bannerFailed, setBannerFailed] = useState(false);
+  const [bannerSrc, setBannerSrc] = useState(rulesBannerImage);
 
   const normalizedRulesContent = useMemo(() => {
     const trimmed = rulesContent.trim();
@@ -36,6 +40,28 @@ const Rules: React.FC = () => {
   const trimmedRulesContent = useMemo(() => normalizedRulesContent.trim(), [normalizedRulesContent]);
   const teamApplyLink = data.settings.googleFormLink?.trim();
   const soloApplyLink = data.settings.freePlayerFormLink?.trim();
+
+  React.useEffect(() => {
+    setBannerSrc(rulesBannerImage || DEFAULT_RULES_BANNER);
+  }, [rulesBannerImage]);
+
+  const rulesHtmlWithButtons = useMemo(() => {
+    const html = trimmedRulesContent || '<p>Регламент пока не заполнен.</p>';
+
+    const teamButtonHtml = teamApplyLink
+      ? `<a href="${teamApplyLink}" target="_blank" rel="noopener noreferrer" class="rules-inline-link"><span>📝 Team</span><span>↗</span></a>`
+      : `<span class="rules-inline-link rules-inline-link-muted">📝 Team (ссылка не задана)</span>`;
+
+    const soloButtonHtml = soloApplyLink
+      ? `<a href="${soloApplyLink}" target="_blank" rel="noopener noreferrer" class="rules-inline-link"><span>📝 Solo</span><span>↗</span></a>`
+      : `<span class="rules-inline-link rules-inline-link-muted">📝 Solo (ссылка не задана)</span>`;
+
+    return html
+      .replaceAll(`<p>${TEAM_BUTTON_TOKEN}</p>`, `<p>${teamButtonHtml}</p>`)
+      .replaceAll(`<p>${SOLO_BUTTON_TOKEN}</p>`, `<p>${soloButtonHtml}</p>`)
+      .replaceAll(TEAM_BUTTON_TOKEN, teamButtonHtml)
+      .replaceAll(SOLO_BUTTON_TOKEN, soloButtonHtml);
+  }, [trimmedRulesContent, teamApplyLink, soloApplyLink]);
 
   // If link mode and we have a link, redirect
   if (rulesMode === 'link' && data.settings.rulesLink) {
@@ -123,12 +149,16 @@ const Rules: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className="glass-card rounded-2xl p-4"
             >
-              {rulesBannerImage && !bannerFailed ? (
+              {bannerSrc ? (
                 <img
-                  src={rulesBannerImage}
+                  src={bannerSrc}
                   alt="Баннер регламента"
                   className="w-full rounded-xl border border-border/60 object-contain bg-background/40 max-h-[420px]"
-                  onError={() => setBannerFailed(true)}
+                  onError={() => {
+                    if (bannerSrc !== DEFAULT_RULES_BANNER) {
+                      setBannerSrc(DEFAULT_RULES_BANNER);
+                    }
+                  }}
                 />
               ) : (
                 <div className="rounded-xl border border-dashed border-border/80 px-4 py-5 text-sm text-muted-foreground bg-background/30">
@@ -145,7 +175,7 @@ const Rules: React.FC = () => {
                       placeholder="/rules-banner.png или https://..."
                       value={rulesBannerImage}
                       onChange={e => {
-                        setBannerFailed(false);
+                        setBannerSrc(e.target.value || DEFAULT_RULES_BANNER);
                         updateSettings({ rulesBannerImage: e.target.value });
                       }}
                     />
@@ -154,8 +184,8 @@ const Rules: React.FC = () => {
                     type="button"
                     className="h-10 px-3 rounded-lg border text-xs font-heading text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
                     onClick={() => {
-                      setBannerFailed(false);
-                      updateSettings({ rulesBannerImage: '/rules-banner.png' });
+                      setBannerSrc(DEFAULT_RULES_BANNER);
+                      updateSettings({ rulesBannerImage: DEFAULT_RULES_BANNER });
                     }}
                     title="Вернуть баннер по умолчанию"
                   >
@@ -175,7 +205,7 @@ const Rules: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm text-muted-foreground">
-                    Выделите текст, чтобы появилось всплывающее меню форматирования (жирный, курсив и т.д.).
+                      Выделите текст, чтобы появилось всплывающее меню форматирования (жирный, курсив и т.д.).
                   </p>
                   <button
                     type="button"
@@ -186,44 +216,22 @@ const Rules: React.FC = () => {
                     <Save size={14} /> Обновить
                   </button>
                 </div>
+                  <p className="text-xs text-muted-foreground">
+                    Для ручного размещения кнопок используйте в тексте токены: <code>{TEAM_BUTTON_TOKEN}</code> и <code>{SOLO_BUTTON_TOKEN}</code>
+                    (или кнопки Team/Solo в панели редактора).
+                  </p>
                 <RichTextEditor
                   value={normalizedRulesContent}
                   onChange={(nextValue) => updateSettings({ rulesContent: nextValue })}
                 />
               </div>
             ) : (
-              <div className="relative">
-                {(teamApplyLink || soloApplyLink) && (
-                  <div className="rules-quick-links">
-                    {teamApplyLink && (
-                      <a
-                        href={teamApplyLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rules-quick-link"
-                      >
-                        <Pencil size={14} /> Team <ExternalLink size={14} />
-                      </a>
-                    )}
-                    {soloApplyLink && (
-                      <a
-                        href={soloApplyLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rules-quick-link"
-                      >
-                        <Pencil size={14} /> Solo <ExternalLink size={14} />
-                      </a>
-                    )}
-                  </div>
-                )}
-                <article
-                  className="rules-content"
-                  dangerouslySetInnerHTML={{
-                    __html: trimmedRulesContent || '<p>Регламент пока не заполнен.</p>',
-                  }}
-                />
-              </div>
+              <article
+                className="rules-content"
+                dangerouslySetInnerHTML={{
+                  __html: rulesHtmlWithButtons,
+                }}
+              />
             )}
           </motion.div>
         </div>
