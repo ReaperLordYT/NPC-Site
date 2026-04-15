@@ -86,9 +86,11 @@ export interface FreePlayer {
   id: string;
   nickname: string;
   discord: string;
+  discordDmLink?: string;
   steam: string;
   position: string;
   mmr: number;
+  status?: 'free' | 'busy';
 }
 
 export interface SiteSettings {

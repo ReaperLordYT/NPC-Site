@@ -8,11 +8,18 @@ const FreePlayers: React.FC = () => {
   const players = data.settings.freePlayers;
   const freePlayerFormLink = data.settings.freePlayerFormLink?.trim();
 
-  const updatePlayer = (id: string, field: 'nickname' | 'discord' | 'steam' | 'position' | 'mmr', value: string) => {
+  const updatePlayer = (
+    id: string,
+    field: 'nickname' | 'discord' | 'discordDmLink' | 'steam' | 'position' | 'mmr' | 'status',
+    value: string
+  ) => {
     updateSettings({
       freePlayers: players.map(player => (
         player.id === id
-          ? { ...player, [field]: field === 'mmr' ? Number(value || 0) : value }
+          ? {
+              ...player,
+              [field]: field === 'mmr' ? Number(value || 0) : value,
+            }
           : player
       )),
     });
@@ -26,9 +33,11 @@ const FreePlayers: React.FC = () => {
           id: Date.now().toString(),
           nickname: 'Новый игрок',
           discord: '',
+          discordDmLink: '',
           steam: '',
           position: '',
           mmr: 0,
+          status: 'free',
         },
       ],
     });
@@ -77,8 +86,17 @@ const FreePlayers: React.FC = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {players.map(player => (
-            <div key={player.id} className="glass-card rounded-xl p-5 card-glow relative">
+          {players.map(player => {
+            const playerStatus = player.status ?? 'free';
+            const isFree = playerStatus === 'free';
+            const hasDiscordDmLink = !!player.discordDmLink?.trim();
+            const shouldLinkDiscord = isFree && hasDiscordDmLink && !!player.discord?.trim();
+
+            return (
+            <div
+              key={player.id}
+              className="glass-card rounded-xl p-5 card-glow relative border border-border/50 hover:border-primary/40 transition-colors"
+            >
               {isAdmin && isEditing && (
                 <button
                   onClick={() => deletePlayer(player.id)}
@@ -93,21 +111,59 @@ const FreePlayers: React.FC = () => {
                 <div className="space-y-2">
                   <input className="w-full bg-background border rounded-lg p-2 text-sm" value={player.nickname} onChange={e => updatePlayer(player.id, 'nickname', e.target.value)} placeholder="Никнейм" />
                   <input className="w-full bg-background border rounded-lg p-2 text-sm" value={player.discord} onChange={e => updatePlayer(player.id, 'discord', e.target.value)} placeholder="Discord" />
+                  <input
+                    className="w-full bg-background border rounded-lg p-2 text-sm"
+                    value={player.discordDmLink ?? ''}
+                    onChange={e => updatePlayer(player.id, 'discordDmLink', e.target.value)}
+                    placeholder="Ссылка на ЛС Discord (необязательно)"
+                  />
                   <input className="w-full bg-background border rounded-lg p-2 text-sm" value={player.steam} onChange={e => updatePlayer(player.id, 'steam', e.target.value)} placeholder="Steam" />
                   <input className="w-full bg-background border rounded-lg p-2 text-sm" value={player.position} onChange={e => updatePlayer(player.id, 'position', e.target.value)} placeholder="Позиция" />
                   <input className="w-full bg-background border rounded-lg p-2 text-sm" type="number" value={player.mmr} onChange={e => updatePlayer(player.id, 'mmr', e.target.value)} placeholder="MMR" />
+                  <select
+                    className="w-full bg-background border rounded-lg p-2 text-sm"
+                    value={playerStatus}
+                    onChange={e => updatePlayer(player.id, 'status', e.target.value)}
+                  >
+                    <option value="free">СВОБОДНЫЙ</option>
+                    <option value="busy">ЗАНЯТ</option>
+                  </select>
                 </div>
               ) : (
-                <div className="space-y-2 text-sm">
-                  <p className="font-heading font-bold text-lg text-foreground">{player.nickname}</p>
-                  <p className="text-muted-foreground">Discord: <span className="text-foreground">{player.discord || '—'}</span></p>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-heading font-bold text-lg text-foreground">{player.nickname}</p>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-1 rounded-full border ${
+                        isFree
+                          ? 'bg-green-500/15 text-green-400 border-green-500/40'
+                          : 'bg-amber-500/15 text-amber-400 border-amber-500/40'
+                      }`}
+                    >
+                      {isFree ? 'СВОБОДНЫЙ' : 'ЗАНЯТ'}
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground">
+                    Discord:{' '}
+                    {shouldLinkDiscord ? (
+                      <a
+                        href={player.discordDmLink}
+                        className="text-primary hover:underline underline-offset-2"
+                        title="Открыть личные сообщения в Discord"
+                      >
+                        {player.discord}
+                      </a>
+                    ) : (
+                      <span className="text-foreground">{player.discord || '—'}</span>
+                    )}
+                  </p>
                   <p className="text-muted-foreground">Steam: <span className="text-foreground">{player.steam || '—'}</span></p>
                   <p className="text-muted-foreground">Позиция: <span className="text-foreground">{player.position || '—'}</span></p>
                   <p className="text-muted-foreground">MMR: <span className="text-foreground">{player.mmr || 0}</span></p>
                 </div>
               )}
             </div>
-          ))}
+          )})}
         </div>
 
         {players.length === 0 && (
