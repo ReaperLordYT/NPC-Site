@@ -56,21 +56,21 @@ const Index: React.FC = () => {
             <Calendar className="inline mr-2" size={14} />
             <EditableText value={settings.tournamentDates} onSave={val => updateSettings({ tournamentDates: val })} as="span" className="inline" />
           </div>
-          <EditableText value={settings.tournamentName} onSave={val => updateSettings({ tournamentName: val })} as="h1" className="font-display text-5xl md:text-7xl lg:text-8xl font-black gradient-text mb-6 leading-tight" />
-          <EditableText value={settings.heroSubtitle} onSave={val => updateSettings({ heroSubtitle: val })} as="p" className="text-lg md:text-xl text-muted-foreground font-heading mb-10 max-w-2xl mx-auto" />
-          <div className="flex flex-wrap justify-center gap-4">
-            <a href={settings.googleFormLink} target="_blank" rel="noopener noreferrer" className="btn-primary-gradient px-8 py-3 rounded-lg text-lg inline-flex items-center gap-2">
+          <EditableText value={settings.tournamentName} onSave={val => updateSettings({ tournamentName: val })} as="h1" className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black gradient-text mb-6 leading-tight" />
+          <EditableText value={settings.heroSubtitle} onSave={val => updateSettings({ heroSubtitle: val })} as="p" className="text-base sm:text-lg md:text-xl text-muted-foreground font-heading mb-8 sm:mb-10 max-w-2xl mx-auto" />
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+            <a href={settings.googleFormLink} target="_blank" rel="noopener noreferrer" className="btn-primary-gradient w-full sm:w-auto justify-center px-5 sm:px-8 py-3 rounded-lg text-base sm:text-lg inline-flex items-center gap-2">
               <Users size={20} /> Регистрация команды
             </a>
             {settings.freePlayerFormLink?.trim() && (
-              <a href={settings.freePlayerFormLink} target="_blank" rel="noopener noreferrer" className="btn-primary-gradient px-8 py-3 rounded-lg text-lg inline-flex items-center gap-2">
+              <a href={settings.freePlayerFormLink} target="_blank" rel="noopener noreferrer" className="btn-primary-gradient w-full sm:w-auto justify-center px-5 sm:px-8 py-3 rounded-lg text-base sm:text-lg inline-flex items-center gap-2">
                 <Users size={20} /> Я свободный игрок
               </a>
             )}
-            <a href={settings.discordLink} target="_blank" rel="noopener noreferrer" className="px-8 py-3 rounded-lg border border-border bg-card/50 hover:bg-card text-foreground font-heading font-semibold inline-flex items-center gap-2 transition-colors">
+            <a href={settings.discordLink} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto justify-center px-5 sm:px-8 py-3 rounded-lg border border-border bg-card/50 hover:bg-card text-foreground font-heading font-semibold inline-flex items-center gap-2 transition-colors">
               <MessageCircle size={20} /> Discord
             </a>
-            <Link to="/rules" className="px-8 py-3 rounded-lg border border-border bg-card/50 hover:bg-card text-foreground font-heading font-semibold inline-flex items-center gap-2 transition-colors">
+            <Link to="/rules" className="w-full sm:w-auto justify-center px-5 sm:px-8 py-3 rounded-lg border border-border bg-card/50 hover:bg-card text-foreground font-heading font-semibold inline-flex items-center gap-2 transition-colors">
               <FileText size={20} /> Регламент
             </Link>
           </div>
@@ -94,7 +94,7 @@ const Index: React.FC = () => {
             <EditableText value={settings.aboutText2} onSave={val => updateSettings({ aboutText2: val })} as="p" className="text-muted-foreground leading-relaxed" multiline />
           </motion.div>
           <motion.div variants={fadeUp} custom={1} className="space-y-2">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {settings.infoCards.map((card, i) => (
                 <div key={card.id} className="glass-card rounded-xl p-6 card-glow text-center relative group">
                   {isAdmin && isEditing && (
@@ -154,7 +154,7 @@ const Index: React.FC = () => {
       {/* Teams */}
       {data.teams.length > 0 && (
         <section className="container mx-auto px-4 py-16">
-          <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center justify-between gap-3 mb-10 flex-wrap">
             <h2 className="section-title">Команды</h2>
             <Link to="/teams" className="text-primary font-heading font-semibold flex items-center gap-1 hover:underline">
               Все команды <ChevronRight size={16} />
@@ -197,20 +197,20 @@ const Index: React.FC = () => {
               const t1 = getTeamById(match.team1Id);
               const t2 = getTeamById(match.team2Id);
               return (
-                <div key={match.id} className="glass-card rounded-xl p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1">
+                <div key={match.id} className="glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0 flex-wrap">
                     <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-heading">{match.format}</span>
                     <div className="flex items-center gap-2">
                       {t1?.logo && <img src={t1.logo} alt="" className="w-8 h-8 rounded object-cover" />}
-                      <span className="font-heading font-semibold text-foreground text-base">{t1?.name || 'TBD'}</span>
+                      <span className="font-heading font-semibold text-foreground text-base break-words">{t1?.name || 'TBD'}</span>
                     </div>
                     <span className="text-muted-foreground text-sm">vs</span>
                     <div className="flex items-center gap-2">
                       {t2?.logo && <img src={t2.logo} alt="" className="w-8 h-8 rounded object-cover" />}
-                      <span className="font-heading font-semibold text-foreground text-base">{t2?.name || 'TBD'}</span>
+                      <span className="font-heading font-semibold text-foreground text-base break-words">{t2?.name || 'TBD'}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-3 sm:gap-4 text-sm text-muted-foreground flex-wrap">
                     {match.streamLink && (
                       <a href={match.streamLink} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
                         <Tv size={14} /> Трансляция

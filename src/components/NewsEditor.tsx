@@ -39,7 +39,7 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ newsId, onClose }) => {
   };
 
   return (
-    <div className="glass-card rounded-2xl p-6 mb-8 relative">
+    <div className="glass-card rounded-2xl p-4 sm:p-6 mb-8 relative max-h-[85vh] overflow-y-auto pb-24 sm:pb-6">
       <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
         <X size={20} />
       </button>
@@ -70,9 +70,19 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ newsId, onClose }) => {
             </div>
           )}
         </div>
-        <button onClick={handleSave} className="btn-primary-gradient px-6 py-2 rounded-lg">
+        <button onClick={handleSave} className="hidden sm:inline-flex btn-primary-gradient px-6 py-2 rounded-lg">
           {existing ? 'Сохранить' : 'Опубликовать'}
         </button>
+      </div>
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur p-3">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 gap-2">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg border text-xs text-muted-foreground hover:text-foreground">
+            Отмена
+          </button>
+          <button onClick={handleSave} className="btn-primary-gradient px-4 py-2 rounded-lg text-xs">
+            {existing ? 'Сохранить' : 'Опубликовать'}
+          </button>
+        </div>
       </div>
     </div>
   );

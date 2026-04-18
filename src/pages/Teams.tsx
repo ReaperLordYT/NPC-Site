@@ -60,13 +60,13 @@ const Teams: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20">
-        <div className="flex items-center justify-between mb-12">
-          <h1 className="font-display text-4xl md:text-5xl font-bold gradient-text">Команды</h1>
+      <div className="container mx-auto px-4 py-16 sm:py-20">
+        <div className="flex items-center justify-between gap-3 mb-8 sm:mb-12 flex-wrap">
+          <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text">Команды</h1>
           {isAdmin && isEditing && (
             <button
               onClick={() => setShowEditor(true)}
-              className="btn-primary-gradient px-4 py-2 rounded-lg flex items-center gap-2"
+              className="btn-primary-gradient px-4 py-2 rounded-lg flex items-center gap-2 text-sm sm:text-base"
             >
               <Plus size={18} /> Добавить команду
             </button>
@@ -85,7 +85,7 @@ const Teams: React.FC = () => {
             />
           </div>
           <select
-            className="bg-card border rounded-lg px-3 py-2 text-sm text-foreground"
+            className="bg-card border rounded-lg px-3 py-2 text-sm text-foreground w-full sm:w-auto"
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as Team['status'] | 'all')}
           >
@@ -128,7 +128,7 @@ const Teams: React.FC = () => {
               className="relative"
             >
               <Link to={`/teams/${team.id}`} className="block glass-card rounded-xl p-6 card-glow group">
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-4 mb-4 min-w-0">
                   {team.logo ? (
                     <img src={team.logo} alt={team.name} className="w-16 h-16 rounded-xl object-cover" />
                   ) : (
@@ -136,8 +136,8 @@ const Teams: React.FC = () => {
                       {team.tag || team.name[0]}
                     </div>
                   )}
-                  <div>
-                    <h3 className="font-heading font-bold text-lg text-foreground group-hover:text-primary transition-colors">
+                  <div className="min-w-0">
+                    <h3 className="font-heading font-bold text-lg text-foreground group-hover:text-primary transition-colors break-words">
                       {team.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">[{team.tag}]</p>
@@ -148,7 +148,7 @@ const Teams: React.FC = () => {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between gap-2 text-sm flex-wrap">
                   <span className="text-muted-foreground">MMR: <span className="text-foreground font-heading font-semibold">{totalMmr(team.players)}</span></span>
                   <span className={`px-2 py-0.5 rounded text-xs font-heading ${
                     team.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :

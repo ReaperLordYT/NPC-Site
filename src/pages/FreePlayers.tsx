@@ -184,18 +184,18 @@ const FreePlayers: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20">
-        <div className="flex items-center justify-between mb-10">
-          <h1 className="font-display text-4xl md:text-5xl font-bold gradient-text">Свободные игроки</h1>
+      <div className="container mx-auto px-4 py-16 sm:py-20">
+        <div className="flex items-center justify-between gap-3 mb-8 sm:mb-10 flex-wrap">
+          <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text">Свободные игроки</h1>
           {isAdmin && isEditing && (
-            <button onClick={addPlayer} className="btn-primary-gradient px-4 py-2 rounded-lg flex items-center gap-2">
+            <button onClick={addPlayer} className="btn-primary-gradient px-4 py-2 rounded-lg flex items-center gap-2 text-sm sm:text-base">
               <Plus size={16} /> Добавить игрока
             </button>
           )}
         </div>
 
-        <div className="mb-8 glass-card rounded-xl p-6 text-center">
-          <p className="text-lg text-muted-foreground">
+        <div className="mb-8 glass-card rounded-xl p-4 sm:p-6 text-center">
+          <p className="text-base sm:text-lg text-muted-foreground">
             У тебя нет команды? Не беда - подай заявку как свободный игрок
           </p>
           {freePlayerFormLink && (
@@ -203,7 +203,7 @@ const FreePlayers: React.FC = () => {
               href={freePlayerFormLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary-gradient mt-4 px-6 py-3 rounded-lg inline-flex items-center gap-2"
+              className="btn-primary-gradient mt-4 px-5 sm:px-6 py-3 rounded-lg inline-flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <FileText size={18} /> Подать заявку как свободный игрок
             </a>

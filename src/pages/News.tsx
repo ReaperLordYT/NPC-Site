@@ -14,13 +14,13 @@ const News: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20">
-        <div className="flex items-center justify-between mb-12">
-          <h1 className="font-display text-4xl md:text-5xl font-bold gradient-text">Новости</h1>
+      <div className="container mx-auto px-4 py-16 sm:py-20">
+        <div className="flex items-center justify-between gap-3 mb-8 sm:mb-12 flex-wrap">
+          <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text">Новости</h1>
           {isAdmin && isEditing && (
             <button
               onClick={() => { setEditingNews(null); setShowEditor(true); }}
-              className="btn-primary-gradient px-4 py-2 rounded-lg flex items-center gap-2"
+              className="btn-primary-gradient px-4 py-2 rounded-lg flex items-center gap-2 text-sm sm:text-base"
             >
               <Plus size={18} /> Добавить
             </button>

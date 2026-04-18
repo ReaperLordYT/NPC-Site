@@ -168,8 +168,8 @@ const Schedule: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20">
-        <h1 className="font-display text-4xl md:text-5xl font-bold gradient-text mb-8 text-center">Расписание</h1>
+      <div className="container mx-auto px-4 py-16 sm:py-20">
+        <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text mb-8 text-center">Расписание</h1>
 
         {/* Filter bar */}
         <div className="mb-6">
@@ -179,17 +179,17 @@ const Schedule: React.FC = () => {
               placeholder="Поиск команды..."
               value={filters.search}
               onChange={e => setFilters(p => ({ ...p, search: e.target.value }))}
-              className="flex-1 min-w-[180px] max-w-xs bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+              className="flex-1 min-w-[180px] sm:max-w-xs bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {hasActiveFilters && (
-                <button onClick={resetFilters} className="flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors">
+                <button onClick={resetFilters} className="flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors whitespace-nowrap">
                   <FilterX size={13} /> Сбросить
                 </button>
               )}
               <button
                 onClick={() => setShowFilters(p => !p)}
-                className={`flex items-center gap-1.5 px-4 py-2 text-sm font-heading rounded-lg border transition-all ${showFilters || hasActiveFilters ? 'bg-primary/10 border-primary/50 text-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}
+                className={`flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-heading rounded-lg border transition-all ${showFilters || hasActiveFilters ? 'bg-primary/10 border-primary/50 text-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}
               >
                 <Filter size={14} /> Фильтры
                 {hasActiveFilters && (
@@ -217,7 +217,7 @@ const Schedule: React.FC = () => {
         {/* Match detail modal */}
         <AnimatePresence>
           {selectedMatchData && (
-            <motion.div ref={detailsRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-card rounded-2xl p-6 mb-8 max-w-3xl mx-auto">
+            <motion.div ref={detailsRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="glass-card rounded-2xl p-4 sm:p-6 mb-8 max-w-3xl mx-auto">
               <div className="flex justify-between items-start mb-4">
                 <h3 className="font-heading text-xl font-bold text-foreground">Подробности матча</h3>
                 <button onClick={() => setSelectedMatch(null)} className="text-muted-foreground hover:text-foreground">✕</button>
@@ -234,7 +234,7 @@ const Schedule: React.FC = () => {
                   <span className="font-display text-3xl font-bold text-foreground">{selectedMatchData.result.team1Score} - {selectedMatchData.result.team2Score}</span>
                 </div>
               )}
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                 {[t1Full, t2Full].map((team, idx) => (
                   <div key={idx} className="bg-background/50 rounded-xl p-4">
                     <div className="flex items-center gap-3 mb-4">
@@ -272,7 +272,7 @@ const Schedule: React.FC = () => {
 
         {/* Table */}
         <div className="overflow-x-auto rounded-xl border border-border/50">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[920px] text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <Th col="date"   className="text-left">Дата</Th>

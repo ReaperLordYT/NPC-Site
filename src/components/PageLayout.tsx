@@ -23,21 +23,34 @@ const PageLayout: React.FC<{ children: React.ReactNode; hideFooter?: boolean }> 
     setShowCat(false);
   }, [location.pathname]);
 
+  const hideCatIfClose = React.useCallback((clientX: number, clientY: number) => {
+    if (!catRef.current) return;
+    const rect = catRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const distance = Math.hypot(clientX - centerX, clientY - centerY);
+    if (distance < 150) {
+      setShowCat(false);
+    }
+  }, []);
+
   React.useEffect(() => {
     if (!showCat) return;
     const onMove = (event: MouseEvent) => {
-      if (!catRef.current) return;
-      const rect = catRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const distance = Math.hypot(event.clientX - centerX, event.clientY - centerY);
-      if (distance < 150) {
-        setShowCat(false);
-      }
+      hideCatIfClose(event.clientX, event.clientY);
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      const t = event.touches[0];
+      if (!t) return;
+      hideCatIfClose(t.clientX, t.clientY);
     };
     window.addEventListener('mousemove', onMove);
-    return () => window.removeEventListener('mousemove', onMove);
-  }, [showCat]);
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('touchstart', onTouchStart);
+    };
+  }, [showCat, hideCatIfClose]);
 
   return (
     <div className="min-h-screen relative">
@@ -51,7 +64,7 @@ const PageLayout: React.FC<{ children: React.ReactNode; hideFooter?: boolean }> 
       <div className="fixed inset-0 bg-background/70 pointer-events-none z-0" />
       <div
         ref={catRef}
-        className={`fixed left-[-17px] bottom-8 z-[120] pointer-events-none select-none hidden md:block transition-transform duration-500 ${
+        className={`fixed left-[-10px] sm:left-[-17px] bottom-4 sm:bottom-8 z-[120] pointer-events-none select-none transition-transform duration-500 ${
           showCat ? 'translate-x-0' : '-translate-x-[120%]'
         }`}
       >
@@ -59,7 +72,7 @@ const PageLayout: React.FC<{ children: React.ReactNode; hideFooter?: boolean }> 
           src={catPeekRight}
           alt=""
           aria-hidden="true"
-          className={`w-[170px] lg:w-[210px] opacity-90 ${showCat ? 'animate-cat-peek' : ''}`}
+          className={`w-[120px] sm:w-[170px] lg:w-[210px] opacity-90 ${showCat ? 'animate-cat-peek' : ''}`}
         />
       </div>
       <div className="relative z-10">

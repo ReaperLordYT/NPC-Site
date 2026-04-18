@@ -75,7 +75,7 @@ const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
   const substitutePlayersCount = players.filter(p => p.isSubstitute).length;
 
   return (
-    <div className="glass-card rounded-2xl p-6 mb-8 relative max-h-[80vh] overflow-y-auto">
+    <div className="glass-card rounded-2xl p-4 sm:p-6 mb-8 relative max-h-[85vh] overflow-y-auto pb-24 sm:pb-6">
       <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
         <X size={20} />
       </button>
@@ -172,7 +172,7 @@ const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
                 <Trash2 size={14} />
               </button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               <input className="bg-background border rounded-lg p-2 text-foreground text-sm" placeholder="Никнейм" value={player.nickname} onChange={e => updatePlayer(i, 'nickname', e.target.value)} />
               <input className="bg-background border rounded-lg p-2 text-foreground text-sm" placeholder="MMR" type="number" value={player.mmr || ''} onChange={e => updatePlayer(i, 'mmr', parseInt(e.target.value) || 0)} />
               <input className="bg-background border rounded-lg p-2 text-foreground text-sm" placeholder="Discord" value={player.discordUsername} onChange={e => updatePlayer(i, 'discordUsername', e.target.value)} />
@@ -191,13 +191,23 @@ const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
         </button>
       </div>
 
-      <div className="mt-6 flex gap-3">
+      <div className="mt-6 hidden sm:flex gap-3">
         <button onClick={handleSave} className="btn-primary-gradient px-6 py-2 rounded-lg">
           {existing ? 'Сохранить' : 'Создать команду'}
         </button>
         <button onClick={onClose} className="px-6 py-2 rounded-lg border text-muted-foreground hover:text-foreground">
           Отмена
         </button>
+      </div>
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur p-3">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 gap-2">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg border text-xs text-muted-foreground hover:text-foreground">
+            Отмена
+          </button>
+          <button onClick={handleSave} className="btn-primary-gradient px-4 py-2 rounded-lg text-xs">
+            {existing ? 'Сохранить' : 'Создать'}
+          </button>
+        </div>
       </div>
     </div>
   );

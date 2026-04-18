@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
 import { motion } from 'framer-motion';
 import { Shield, LogIn, Settings, Upload, Music, CheckCircle, AlertCircle, Loader2, RefreshCw, DatabaseBackup, Plus, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Admin: React.FC = () => {
   const { isAdmin, login, data, updateSettings, toggleEditing, isEditing, saving, saveError, refreshData, backups, refreshBackups, createBackup, restoreBackup, deleteBackup } = useTournament();
@@ -16,6 +17,16 @@ const Admin: React.FC = () => {
   const [settings, setSettings] = useState(data.settings);
   const [refreshing, setRefreshing] = useState(false);
   const [deletingBackupId, setDeletingBackupId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    setSettings(data.settings);
+  }, [data.settings]);
+
+  const hasUnsavedChanges = useMemo(
+    () => JSON.stringify(settings) !== JSON.stringify(data.settings),
+    [settings, data.settings]
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,10 +97,10 @@ const Admin: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20 max-w-4xl">
+      <div className="container mx-auto px-4 py-16 sm:py-20 max-w-4xl pb-28 sm:pb-20">
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-          <h1 className="font-display text-3xl font-bold gradient-text">Админ-панель</h1>
-          <div className="flex items-center gap-3">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold gradient-text">Админ-панель</h1>
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {/* Save status indicator */}
             {saving && (
               <span className="flex items-center gap-1 text-xs text-primary font-heading">
@@ -101,10 +112,10 @@ const Admin: React.FC = () => {
                 <AlertCircle size={14} /> Ошибка: {saveError}
               </span>
             )}
-            <button onClick={handleRefresh} className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors" title="Обновить данные из Supabase">
+            <button onClick={handleRefresh} className="hidden sm:flex items-center gap-1 px-3 py-1.5 border rounded-lg text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors" title="Обновить данные из Supabase">
               <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Обновить
             </button>
-            <button onClick={toggleEditing} className={`px-4 py-2 rounded-lg font-heading font-semibold transition-all ${isEditing ? 'btn-primary-gradient' : 'bg-card border text-muted-foreground'}`}>
+            <button onClick={toggleEditing} className={`hidden sm:block px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-heading font-semibold transition-all ${isEditing ? 'btn-primary-gradient' : 'bg-card border text-muted-foreground'}`}>
               {isEditing ? '✏️ Редактирование ВКЛ' : '✏️ Включить редактирование'}
             </button>
           </div>
@@ -115,7 +126,7 @@ const Admin: React.FC = () => {
           Вы увидите кнопки для добавления, удаления и редактирования контента прямо на страницах.
         </p>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-12">
           {[
             { label: 'Команды', path: '/teams', count: data.teams.length },
             { label: 'Матчи', path: '/schedule', count: data.matches.length },
@@ -123,42 +134,45 @@ const Admin: React.FC = () => {
             { label: 'Регистрация', path: '/registration', count: '' },
             { label: 'Регламент', path: '/rules', count: '' },
           ].map(item => (
-            <button key={item.path} onClick={() => navigate(item.path)} className="glass-card rounded-xl p-6 text-left card-glow">
-              <h3 className="font-heading font-bold text-foreground mb-1">{item.label}</h3>
-              {item.count !== '' && <p className="text-sm text-muted-foreground">{item.count} записей</p>}
+            <button key={item.path} onClick={() => navigate(item.path)} className="glass-card rounded-xl p-3 sm:p-6 text-left card-glow">
+              <h3 className="font-heading font-bold text-foreground mb-1 text-sm sm:text-base">{item.label}</h3>
+              {item.count !== '' && <p className="text-xs sm:text-sm text-muted-foreground">{item.count} записей</p>}
             </button>
           ))}
         </div>
 
         {/* ── Backups ───────────────────────────────────────────────────── */}
-        <div className="glass-card rounded-2xl p-6 mb-8">
-          <h2 className="font-heading text-xl font-bold text-foreground mb-2 flex items-center gap-2">
-            <DatabaseBackup size={22} className="text-primary" /> Бэкапы и откат
-          </h2>
+        <details className="glass-card rounded-2xl p-6 mb-8" open>
+          <summary className="list-none cursor-pointer">
+            <h2 className="font-heading text-xl font-bold text-foreground mb-2 flex items-center gap-2">
+              <DatabaseBackup size={22} className="text-primary" /> Бэкапы и откат
+            </h2>
+          </summary>
+          <p className="text-xs text-muted-foreground mb-2">Создавайте снапшоты и откатывайте изменения</p>
           <p className="text-sm text-muted-foreground mb-5">
             Создавайте снапшоты перед крупными изменениями. При откате система восстановит все данные
             (команды, матчи, настройки) из выбранного бэкапа.
           </p>
-          <div className="flex gap-3 mt-4">
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <input
-              className="flex-1 bg-background border rounded-lg p-3 text-foreground text-sm"
+              className="flex-1 bg-background border rounded-lg p-3 text-foreground text-sm min-w-0"
               placeholder="Комментарий к бэкапу (например: перед финальными сетками)"
               value={backupNote}
               onChange={e => setBackupNote(e.target.value)}
             />
-            <button onClick={handleCreateBackup} className="btn-primary-gradient px-5 py-2 rounded-lg flex items-center gap-2">
+            <button onClick={handleCreateBackup} className="btn-primary-gradient px-5 py-2 rounded-lg flex items-center justify-center gap-2 whitespace-nowrap">
               <CheckCircle size={16} /> Создать бэкап
             </button>
           </div>
           <div className="mt-4 space-y-2">
             {backups.length === 0 && <p className="text-xs text-muted-foreground">Бэкапов пока нет.</p>}
             {backups.map(backup => (
-              <div key={backup.id} className="flex items-center justify-between gap-3 bg-background/50 border rounded-lg px-3 py-2">
+              <div key={backup.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-background/50 border rounded-lg px-3 py-2">
                 <div className="min-w-0">
                   <p className="text-sm text-foreground truncate">{backup.note || 'snapshot'}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(backup.createdAt).toLocaleString()} · {backup.createdBy}</p>
+                  <p className="text-xs text-muted-foreground break-all">{new Date(backup.createdAt).toLocaleString()} · {backup.createdBy}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={() => restoreBackup(backup.id)}
                     className="px-3 py-1.5 border rounded-lg text-xs text-muted-foreground hover:text-foreground"
@@ -176,13 +190,15 @@ const Admin: React.FC = () => {
               </div>
             ))}
           </div>
-        </div>
+        </details>
 
         {/* ── Site Settings ─────────────────────────────────────────────── */}
-        <div className="glass-card rounded-2xl p-6">
-          <h2 className="font-heading text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-            <Settings size={22} className="text-primary" /> Настройки сайта
-          </h2>
+        <details className="glass-card rounded-2xl p-6" open>
+          <summary className="list-none cursor-pointer">
+            <h2 className="font-heading text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+              <Settings size={22} className="text-primary" /> Настройки сайта
+            </h2>
+          </summary>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-muted-foreground mb-1 block">Название турнира (и заголовок вкладки браузера)</label>
@@ -219,7 +235,7 @@ const Admin: React.FC = () => {
                 {settings.contactsList.map((contact, idx) => (
                   <div key={`${contact}-${idx}`} className="flex gap-2">
                     <input
-                      className="flex-1 bg-background border rounded-lg p-3 text-foreground"
+                      className="flex-1 bg-background border rounded-lg p-3 text-foreground min-w-0"
                       value={contact}
                       onChange={e => setSettings(p => {
                         const next = [...p.contactsList];
@@ -343,7 +359,7 @@ const Admin: React.FC = () => {
               <label className="text-sm text-muted-foreground mb-1 block flex items-center gap-2">
                 <Music size={16} /> Фоновая музыка
               </label>
-              <div className="flex gap-3 items-center">
+              <div className="flex gap-3 items-center flex-wrap">
                 <input ref={musicFileRef} type="file" accept="audio/mp3,audio/mpeg,audio/*" onChange={handleMusicUpload} className="hidden" />
                 <button onClick={() => musicFileRef.current?.click()} className="flex items-center gap-2 px-4 py-2 border rounded-lg text-muted-foreground hover:text-foreground hover:border-primary transition-colors">
                   <Upload size={16} /> {settings.musicUrl ? 'Заменить MP3' : 'Загрузить MP3'}
@@ -359,9 +375,40 @@ const Admin: React.FC = () => {
               <input className="w-full bg-background border rounded-lg p-2 text-foreground text-sm mt-1" placeholder="https://example.com/music.mp3" value={settings.musicUrl?.startsWith('data:') ? '' : settings.musicUrl} onChange={e => setSettings(p => ({ ...p, musicUrl: e.target.value }))} />
             </div>
           </div>
-          <button onClick={handleSaveSettings} className="btn-primary-gradient px-6 py-2 rounded-lg mt-6">Сохранить настройки</button>
-        </div>
+          {!isMobile && (
+            <button onClick={handleSaveSettings} className="btn-primary-gradient px-6 py-2 rounded-lg mt-6">
+              {hasUnsavedChanges ? 'Сохранить настройки' : 'Настройки сохранены'}
+            </button>
+          )}
+        </details>
       </div>
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur p-3">
+          <div className="max-w-4xl mx-auto grid grid-cols-3 gap-2">
+            <button
+              onClick={handleRefresh}
+              className="px-3 py-2 rounded-lg border text-xs text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1"
+              title="Обновить данные"
+            >
+              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Обновить
+            </button>
+            <button
+              onClick={toggleEditing}
+              className={`px-3 py-2 rounded-lg text-xs font-heading font-semibold transition-all ${isEditing ? 'btn-primary-gradient' : 'bg-card border text-muted-foreground'}`}
+            >
+              {isEditing ? 'Редактир.' : 'Режим правки'}
+            </button>
+            <button
+              onClick={handleSaveSettings}
+              className={`px-3 py-2 rounded-lg text-xs font-heading font-semibold ${
+                hasUnsavedChanges ? 'btn-primary-gradient' : 'border text-muted-foreground'
+              }`}
+            >
+              {hasUnsavedChanges ? 'Сохранить' : 'Сохранено'}
+            </button>
+          </div>
+        </div>
+      )}
     </PageLayout>
   );
 };

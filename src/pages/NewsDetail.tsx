@@ -49,7 +49,7 @@ const NewsDetail: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20 max-w-3xl">
+      <div className="container mx-auto px-4 py-16 sm:py-20 max-w-3xl">
         <Link to="/news" className="text-muted-foreground hover:text-primary flex items-center gap-2 mb-8 font-heading">
           <ArrowLeft size={18} /> Назад к новостям
         </Link>
@@ -59,7 +59,7 @@ const NewsDetail: React.FC = () => {
           </div>
         )}
         <p className="text-sm text-muted-foreground mb-4">{formatDate(news.date)}</p>
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">{news.title}</h1>
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-6 break-words">{news.title}</h1>
         <div className="text-muted-foreground leading-relaxed">{renderMarkdown(news.content)}</div>
       </div>
     </PageLayout>

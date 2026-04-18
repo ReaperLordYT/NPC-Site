@@ -21,9 +21,9 @@ const Organizers: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20 max-w-4xl">
+      <div className="container mx-auto px-4 py-16 sm:py-20 max-w-4xl">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="font-display text-4xl font-bold gradient-text mb-4 text-center">Организаторы</h1>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold gradient-text mb-4 text-center">Организаторы</h1>
           <EditableText
             value={settings.organizersIntro}
             onSave={val => updateSettings({ organizersIntro: val })}
@@ -63,7 +63,7 @@ const Organizers: React.FC = () => {
           )}
 
           {/* Contacts */}
-          <div className="glass-card rounded-2xl p-8 text-center card-glow">
+          <div className="glass-card rounded-2xl p-5 sm:p-8 text-center card-glow">
             <h2 className="font-heading text-xl font-bold text-foreground mb-6">Контакты</h2>
             <div className="flex flex-col items-center gap-3">
               {settings.contactsList.map((contact, idx) => (

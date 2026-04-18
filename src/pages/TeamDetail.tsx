@@ -103,7 +103,7 @@ const TeamDetail: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20 max-w-4xl">
+      <div className="container mx-auto px-4 py-16 sm:py-20 max-w-4xl">
         <Link to="/teams" className="text-muted-foreground hover:text-primary flex items-center gap-2 mb-8 font-heading">
           <ArrowLeft size={18} /> Назад к командам
         </Link>
@@ -114,7 +114,7 @@ const TeamDetail: React.FC = () => {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           {/* ── Team Header ───────────────────────────────────────────────── */}
-          <div className={`glass-card rounded-2xl p-8 mb-8 ${team.status === 'withdrawn' ? 'opacity-80' : ''}`}>
+          <div className={`glass-card rounded-2xl p-5 sm:p-8 mb-8 ${team.status === 'withdrawn' ? 'opacity-80' : ''}`}>
             <div className="flex items-start gap-6 mb-6 flex-wrap">
               {team.logo ? (
                 <img src={team.logo} alt={team.name} className="w-24 h-24 rounded-2xl object-cover flex-shrink-0" />
@@ -124,7 +124,7 @@ const TeamDetail: React.FC = () => {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h1 className={`font-display text-3xl font-bold text-foreground ${team.status === 'withdrawn' ? 'line-through opacity-60' : ''}`}>{team.name}</h1>
+                <h1 className={`font-display text-2xl sm:text-3xl font-bold text-foreground break-words ${team.status === 'withdrawn' ? 'line-through opacity-60' : ''}`}>{team.name}</h1>
                 <p className="text-muted-foreground font-heading">[{team.tag}]</p>
                 {team.titleText && (
                   <span className={`inline-flex items-center gap-1 mt-2 px-3 py-1 rounded text-xs font-heading ${titleClass}`}>
@@ -178,7 +178,7 @@ const TeamDetail: React.FC = () => {
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-4 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
               <div className="bg-background/50 rounded-xl p-3">
                 <p className="text-2xl font-display font-bold text-foreground">{totalMmr}</p>
                 <p className="text-xs text-muted-foreground">Суммарный MMR</p>
@@ -202,18 +202,18 @@ const TeamDetail: React.FC = () => {
           <h2 className="font-heading text-2xl font-bold mb-6 text-foreground">Состав</h2>
           <div className="space-y-3 mb-10">
             {sortedPlayers.map(player => (
-              <div key={player.id} className="glass-card rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-4">
+              <div key={player.id} className="glass-card rounded-xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     {player.isCaptain && <Crown size={16} className="text-yellow-400" />}
                     <span className="font-heading font-bold text-foreground">{player.nickname || 'Без ника'}</span>
                     {player.isSubstitute && (
                       <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-heading">Запасной</span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">MMR: {player.mmr} | Discord: {player.discordUsername || '—'}</p>
+                  <p className="text-sm text-muted-foreground break-words">MMR: {player.mmr} | Discord: {player.discordUsername || '—'}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {player.steamLink && (
                     <a href={player.steamLink} target="_blank" rel="noopener noreferrer"
                       className="px-3 py-1.5 text-xs border rounded-lg text-muted-foreground hover:text-primary hover:border-primary flex items-center gap-1 transition-colors">
@@ -255,8 +255,8 @@ const TeamDetail: React.FC = () => {
               {sortedPlayers.map(player => {
                 const isActive = activePlayerIds.includes(player.id);
                 return (
-                  <label key={`lineup-${player.id}`} className="flex items-center justify-between gap-3 bg-background/40 border rounded-lg px-3 py-2">
-                    <span className="text-sm text-foreground">
+                  <label key={`lineup-${player.id}`} className="flex items-start sm:items-center justify-between gap-3 bg-background/40 border rounded-lg px-3 py-2">
+                    <span className="text-sm text-foreground break-words">
                       {player.nickname || 'Без ника'} ({player.mmr || 0} MMR)
                       {player.isCaptain ? ' • Капитан' : ''}
                       {player.isSubstitute ? ' • Запасной' : ''}
@@ -394,7 +394,7 @@ const TeamDetail: React.FC = () => {
           )}
           {selectedMatch && (
             <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm p-4" onClick={() => setSelectedMatchId(null)}>
-              <div className="max-w-2xl mx-auto mt-16 glass-card rounded-2xl p-6" onClick={e => e.stopPropagation()}>
+              <div className="max-w-2xl mx-auto mt-10 sm:mt-16 glass-card rounded-2xl p-4 sm:p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-heading text-xl font-bold text-foreground">Подробности матча</h3>
                   <button className="text-muted-foreground hover:text-foreground" onClick={() => setSelectedMatchId(null)}>✕</button>

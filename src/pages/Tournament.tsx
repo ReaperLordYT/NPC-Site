@@ -733,7 +733,7 @@ const NodeBracketEditor: React.FC = () => {
       {/* Canvas */}
       <div
         className="glass-card rounded-2xl overflow-hidden border border-border/30"
-        style={{ height: 600, position: 'relative' }}
+        style={{ height: 'min(70vh, 600px)', position: 'relative' }}
       >
         <div
           ref={canvasRef}
@@ -1036,7 +1036,7 @@ const Tournament: React.FC = () => {
   const selectedT2 = selectedMatch ? getTeamById(selectedMatch.team2Id) : null;
 
   const NewMatchPanel = () => (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-background/50 rounded-lg border border-border/50 mt-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-background/50 rounded-lg border border-border/50 mt-4">
       <div>
         <label className="text-xs text-muted-foreground block mb-1">Команда 1</label>
         <select className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" value={newMatch.team1Id} onChange={e => setNewMatch(p => ({ ...p, team1Id: e.target.value }))}>
@@ -1077,11 +1077,11 @@ const Tournament: React.FC = () => {
         <label className="text-xs text-muted-foreground block mb-1">Время</label>
         <input type="time" className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" value={newMatch.scheduledTime} onChange={e => setNewMatch(p => ({ ...p, scheduledTime: e.target.value }))} />
       </div>
-      <div className="col-span-2 md:col-span-3">
+      <div className="sm:col-span-2 md:col-span-3">
         <label className="text-xs text-muted-foreground block mb-1">Ссылка на трансляцию</label>
         <input className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" placeholder="https://twitch.tv/..." value={newMatch.streamLink} onChange={e => setNewMatch(p => ({ ...p, streamLink: e.target.value }))} />
       </div>
-      <div className="flex gap-2 col-span-2 md:col-span-3">
+      <div className="flex gap-2 flex-wrap sm:col-span-2 md:col-span-3">
         <button onClick={handleCreateMatch} className="btn-primary-gradient px-5 py-2 rounded-lg text-sm font-heading flex items-center gap-1">
           <Check size={14} /> Создать матч {(!newMatch.team1Id || !newMatch.team2Id) ? '(TBD)' : ''}
         </button>
@@ -1092,8 +1092,8 @@ const Tournament: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20">
-        <h1 className="font-display text-4xl md:text-5xl font-bold gradient-text mb-8 text-center">Турнир</h1>
+      <div className="container mx-auto px-4 py-16 sm:py-20">
+        <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text mb-8 text-center">Турнир</h1>
 
         {/* Tabs */}
         <div className="flex justify-center gap-2 mb-12 flex-wrap">
@@ -1101,7 +1101,7 @@ const Tournament: React.FC = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-6 py-2 rounded-lg font-heading font-semibold transition-all ${
+              className={`px-4 sm:px-6 py-2 rounded-lg w-full sm:w-auto text-sm sm:text-base font-heading font-semibold transition-all ${
                 activeTab === tab.key ? 'btn-primary-gradient' : 'bg-card border text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -1327,7 +1327,7 @@ const Tournament: React.FC = () => {
         )}
         {selectedMatch && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm p-4" onClick={() => setSelectedMatch(null)}>
-            <div className="max-w-2xl mx-auto mt-16 glass-card rounded-2xl p-6" onClick={e => e.stopPropagation()}>
+            <div className="max-w-2xl mx-auto mt-10 sm:mt-16 glass-card rounded-2xl p-4 sm:p-6 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-heading text-xl font-bold text-foreground">Подробности матча</h3>
                 <button className="text-muted-foreground hover:text-foreground" onClick={() => setSelectedMatch(null)}>✕</button>

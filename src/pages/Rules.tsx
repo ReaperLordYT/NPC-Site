@@ -189,15 +189,15 @@ const Rules: React.FC = () => {
   if (rulesMode === 'link' && data.settings.rulesLink) {
     return (
       <PageLayout>
-        <div className="container mx-auto px-4 py-20 text-center">
+        <div className="container mx-auto px-4 py-16 sm:py-20 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="font-display text-4xl md:text-5xl font-bold gradient-text mb-8">Регламент турнира</h1>
+            <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text mb-8">Регламент турнира</h1>
             <p className="text-muted-foreground mb-8">Регламент доступен по внешней ссылке</p>
             <a
               href={data.settings.rulesLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary-gradient px-8 py-4 rounded-lg text-lg inline-flex items-center gap-2"
+              className="btn-primary-gradient px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg inline-flex items-center gap-2"
             >
               <ExternalLink size={20} /> Открыть регламент
             </a>
@@ -205,7 +205,7 @@ const Rules: React.FC = () => {
             {isAdmin && isEditing && (
               <div className="mt-8 glass-card rounded-xl p-6 max-w-md mx-auto space-y-4">
                 <h3 className="font-heading font-bold text-foreground">Настройки режима</h3>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap justify-center">
                   <button
                     onClick={() => updateSettings({ rulesMode: 'page' })}
                     className="px-4 py-2 rounded-lg border text-sm font-heading text-muted-foreground hover:text-foreground"
@@ -232,17 +232,17 @@ const Rules: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20">
+      <div className="container mx-auto px-4 py-16 sm:py-20">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="font-display text-4xl md:text-5xl font-bold gradient-text mb-16 text-center"
+          className="font-display text-3xl md:text-5xl font-bold gradient-text mb-12 sm:mb-16 text-center"
         >
           Регламент турнира
         </motion.h1>
 
         {isAdmin && isEditing && (
-          <div className="max-w-4xl mx-auto mb-8 glass-card rounded-xl p-4 flex items-center gap-4">
+          <div className="max-w-4xl mx-auto mb-8 glass-card rounded-xl p-4 flex flex-wrap items-center gap-3">
             <span className="text-sm font-heading text-muted-foreground">Режим:</span>
             <button className="px-3 py-1.5 rounded-lg btn-primary-gradient text-xs font-heading">
               <FileText size={12} className="inline mr-1" /> Страница
@@ -294,7 +294,7 @@ const Rules: React.FC = () => {
               )}
 
               {canEditRules && (
-                <div className="mt-3 flex items-end gap-2">
+                <div className="mt-3 flex items-end gap-2 flex-wrap">
                   <div className="flex-1">
                     <label className="text-xs text-muted-foreground mb-1 block">Ссылка на баннер</label>
                     <input
@@ -332,7 +332,7 @@ const Rules: React.FC = () => {
           >
             {canEditRules ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
                   <p className="text-sm text-muted-foreground">
                       Выделите текст, чтобы появилось всплывающее меню форматирования (жирный, курсив и т.д.).
                   </p>

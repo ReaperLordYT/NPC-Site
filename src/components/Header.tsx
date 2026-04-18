@@ -170,8 +170,8 @@ const Header: React.FC = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b bg-background/80">
-      <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <Link to="/" onClick={handleLogoClick} className="font-display text-xl font-bold gradient-text tracking-wider">
+      <div className="container mx-auto px-3 sm:px-4 flex items-center justify-between h-16 gap-2">
+        <Link to="/" onClick={handleLogoClick} className="font-display text-lg sm:text-xl font-bold gradient-text tracking-wider truncate max-w-[120px] sm:max-w-none">
           Blank
         </Link>
 
@@ -232,7 +232,7 @@ const Header: React.FC = () => {
           )}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Music toggle for mobile */}
           {musicUrl && (
             <button
@@ -246,23 +246,23 @@ const Header: React.FC = () => {
 
           {isAdmin && (
             <>
-              <Link to="/admin" className="p-2 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-primary/10" title="Админ-панель">
+              <Link to="/admin" className="p-1.5 sm:p-2 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-primary/10" title="Админ-панель">
                 <AdminShieldIcon />
               </Link>
-              <button onClick={toggleEditing} className={`p-2 rounded-md transition-colors ${isEditing ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title={isEditing ? 'Выключить редактирование' : 'Включить редактирование'}>
+              <button onClick={toggleEditing} className={`p-1.5 sm:p-2 rounded-md transition-colors ${isEditing ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title={isEditing ? 'Выключить редактирование' : 'Включить редактирование'}>
                 <Edit size={18} />
               </button>
-              <button onClick={logout} className="p-2 text-muted-foreground hover:text-foreground" title="Выйти">
+              <button onClick={logout} className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground" title="Выйти">
                 <LogOut size={18} />
               </button>
             </>
           )}
           {!isAdmin && (
-            <Link to="/admin" className="p-2 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-primary/10" title="Админ-панель">
+            <Link to="/admin" className="p-1.5 sm:p-2 text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-primary/10" title="Админ-панель">
               <AdminShieldIcon />
             </Link>
           )}
-          <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 text-foreground">
+          <button onClick={() => setMobileOpen(true)} className="lg:hidden p-1.5 sm:p-2 text-foreground">
             <Menu size={22} />
           </button>
         </div>
@@ -281,7 +281,7 @@ const Header: React.FC = () => {
             <div className="flex justify-end p-4">
               <button onClick={() => setMobileOpen(false)}><X size={24} /></button>
             </div>
-            <nav className="flex flex-col items-center gap-4 mt-8">
+            <nav className="flex flex-col items-center gap-4 mt-4 px-4 pb-8 max-h-[calc(100vh-72px)] overflow-y-auto">
               {navItems.map(item => (
                 <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)} className="text-xl font-heading font-semibold text-foreground hover:text-primary transition-colors">
                   {item.label}

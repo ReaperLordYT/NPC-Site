@@ -117,14 +117,14 @@ const MVP: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="container mx-auto px-4 py-20 max-w-4xl">
+      <div className="container mx-auto px-4 py-16 sm:py-20 max-w-4xl">
         {hasMusic && (
           <audio ref={audioRef} loop preload="auto" />
         )}
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
           <Star className="mx-auto mb-4 text-primary" size={56} />
-          <h1 className="font-display text-4xl md:text-5xl font-bold gradient-text mb-4">MVP Турнира</h1>
+          <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text mb-4">MVP Турнира</h1>
           <EditableText value={settings.mvpText} onSave={val => updateSettings({ mvpText: val })} as="p" className="text-muted-foreground max-w-2xl mx-auto mb-4" multiline />
           <EditableText value={settings.mvpPrize} onSave={val => updateSettings({ mvpPrize: val })} as="p" className="text-foreground font-heading font-semibold mb-8" />
         </motion.div>
@@ -154,14 +154,14 @@ const MVP: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="glass-card rounded-2xl p-8 md:p-12 card-glow text-center"
+          className="glass-card rounded-2xl p-5 sm:p-8 md:p-12 card-glow text-center"
         >
           {mvpPlayer ? (
             <>
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center mx-auto mb-6">
                 <Trophy className="text-primary-foreground" size={48} />
               </div>
-              <h2 className="font-display text-3xl font-bold text-foreground mb-2">{mvpPlayer.player.nickname}</h2>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-2 break-words">{mvpPlayer.player.nickname}</h2>
               <p className="text-primary font-heading font-semibold mb-1">{mvpPlayer.team.name}</p>
               {mvpPlayer.player.isSubstitute && <p className="text-muted-foreground text-sm">Запасной игрок</p>}
               {mvpPlayer.player.mmr > 0 && (
