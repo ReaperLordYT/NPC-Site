@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { useTournament } from '@/context/TournamentContext';
 import EditableText from '@/components/EditableText';
 import PageLayout from '@/components/PageLayout';
-import { Calendar, Users, Trophy, MessageCircle, FileText, ChevronRight, Tv, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Users, Trophy, FileText, ChevronRight, Tv, Plus, Trash2 } from 'lucide-react';
+import { DiscordIcon } from '@/components/icons/DiscordIcon';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -56,8 +57,32 @@ const Index: React.FC = () => {
             <Calendar className="inline mr-2" size={14} />
             <EditableText value={settings.tournamentDates} onSave={val => updateSettings({ tournamentDates: val })} as="span" className="inline" />
           </div>
-          <EditableText value={settings.tournamentName} onSave={val => updateSettings({ tournamentName: val })} as="h1" className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black gradient-text mb-6 leading-tight" />
-          <EditableText value={settings.heroSubtitle} onSave={val => updateSettings({ heroSubtitle: val })} as="p" className="text-base sm:text-lg md:text-xl text-muted-foreground font-heading mb-8 sm:mb-10 max-w-2xl mx-auto" />
+          <div className="flex flex-col items-center sm:flex-row sm:items-start sm:justify-center gap-4 sm:gap-5 md:gap-6 mb-8 sm:mb-10">
+            <a
+              href={settings.discordLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group shrink-0 flex h-14 w-14 sm:h-[3.75rem] sm:w-[3.75rem] items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-white/55 shadow-sm backdrop-blur-sm transition-colors hover:border-white/25 hover:bg-white/[0.16] hover:text-white/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              aria-label="Discord сервер турнира"
+              title="Discord"
+            >
+              <DiscordIcon size={32} className="opacity-95 transition-opacity group-hover:opacity-100" />
+            </a>
+            <div className="min-w-0 flex-1 space-y-4 sm:space-y-5 text-center sm:text-left">
+              <EditableText
+                value={settings.tournamentName}
+                onSave={val => updateSettings({ tournamentName: val })}
+                as="h1"
+                className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black gradient-text leading-tight"
+              />
+              <EditableText
+                value={settings.heroSubtitle}
+                onSave={val => updateSettings({ heroSubtitle: val })}
+                as="p"
+                className="text-base sm:text-lg md:text-xl text-muted-foreground font-heading max-w-2xl mx-auto sm:mx-0"
+              />
+            </div>
+          </div>
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
             <a href={settings.googleFormLink} target="_blank" rel="noopener noreferrer" className="btn-primary-gradient w-full sm:w-auto justify-center px-5 sm:px-8 py-3 rounded-lg text-base sm:text-lg inline-flex items-center gap-2">
               <Users size={20} /> Регистрация команды
@@ -67,9 +92,6 @@ const Index: React.FC = () => {
                 <Users size={20} /> Я свободный игрок
               </a>
             )}
-            <a href={settings.discordLink} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto justify-center px-5 sm:px-8 py-3 rounded-lg border border-border bg-card/50 hover:bg-card text-foreground font-heading font-semibold inline-flex items-center gap-2 transition-colors">
-              <MessageCircle size={20} /> Discord
-            </a>
             <Link to="/rules" className="w-full sm:w-auto justify-center px-5 sm:px-8 py-3 rounded-lg border border-border bg-card/50 hover:bg-card text-foreground font-heading font-semibold inline-flex items-center gap-2 transition-colors">
               <FileText size={20} /> Регламент
             </Link>
