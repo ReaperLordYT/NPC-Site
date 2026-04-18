@@ -14,7 +14,7 @@ const fadeUp = {
 
 /** База кнопок героя (отступы, текст). Минимальная высота — отдельно: нижний ряд может быть выше из‑за переноса текста. */
 const heroCtaBoxBase =
-  'inline-flex items-center justify-center gap-2 rounded-lg px-5 sm:px-6 py-3.5 text-base sm:text-lg font-bold tracking-wide';
+  'inline-flex items-center justify-center gap-2.5 sm:gap-3 rounded-lg px-5 sm:px-6 py-3.5 text-lg sm:text-xl font-bold tracking-wide';
 const heroCtaBox = `${heroCtaBoxBase} min-h-14`;
 
 const Index: React.FC = () => {
@@ -118,7 +118,7 @@ const Index: React.FC = () => {
                 }
                 className={`btn-primary-gradient ${heroCtaBoxBase} ${discordBoxHeightPx == null ? 'min-h-14' : ''} box-border w-auto max-w-full sm:w-[calc((100%_-_2rem)_/_2)]`}
               >
-                <DiscordIcon size={20} className="shrink-0" />
+                <DiscordIcon size={24} className="shrink-0" />
                 Discord
               </a>
             </div>
@@ -132,7 +132,7 @@ const Index: React.FC = () => {
                 rel="noopener noreferrer"
                 className={`btn-primary-gradient w-full sm:flex-1 sm:min-w-[200px] justify-center ${heroCtaBox}`}
               >
-                <Users size={20} /> Регистрация команды
+                <Users size={24} /> Регистрация команды
               </a>
               {settings.freePlayerFormLink?.trim() && (
                 <a
@@ -141,14 +141,14 @@ const Index: React.FC = () => {
                   rel="noopener noreferrer"
                   className={`btn-primary-gradient w-full sm:flex-1 sm:min-w-[200px] justify-center ${heroCtaBox}`}
                 >
-                  <Users size={20} /> Я свободный игрок
+                  <Users size={24} /> Я свободный игрок
                 </a>
               )}
               <Link
                 to="/rules"
                 className={`w-full sm:flex-1 sm:min-w-[200px] justify-center border border-border bg-card/50 hover:bg-card text-foreground font-heading transition-colors ${heroCtaBox}`}
               >
-                <FileText size={20} /> Регламент
+                <FileText size={24} /> Регламент
               </Link>
             </div>
           </div>
