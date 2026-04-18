@@ -276,19 +276,14 @@ const Header: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[100] lg:hidden"
+            className="fixed inset-0 z-[100] lg:hidden bg-background/95 backdrop-blur-xl"
           >
-            <button
-              className="absolute inset-0 bg-black/45"
-              onClick={() => setMobileOpen(false)}
-              aria-label="Закрыть меню"
-            />
-            <motion.aside
+            <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'tween', duration: 0.25 }}
-              className="absolute right-0 top-0 bottom-0 w-[86vw] max-w-sm bg-background border-l border-border/70 shadow-2xl flex flex-col"
+              transition={{ type: 'tween', duration: 0.22 }}
+              className="h-full flex flex-col"
             >
               <div className="flex items-center justify-between p-4 border-b border-border/60">
                 <span className="font-heading font-semibold text-foreground">Меню</span>
@@ -296,23 +291,23 @@ const Header: React.FC = () => {
                   <X size={22} />
                 </button>
               </div>
-              <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+              <nav className="flex-1 overflow-y-auto p-4 space-y-2">
                 {navItems.map(item => (
                   <Link
                     key={item.path}
                     to={item.path}
                     onClick={() => setMobileOpen(false)}
-                    className={`block w-full rounded-lg px-3 py-3 text-base font-heading font-semibold transition-colors ${
+                    className={`block w-full rounded-lg px-4 py-3 text-base font-heading font-semibold transition-colors ${
                       location.pathname === item.path
                         ? 'text-primary bg-primary/10'
-                        : 'text-foreground hover:text-primary hover:bg-muted/70'
+                        : 'text-foreground bg-card/40 hover:text-primary hover:bg-muted/70'
                     }`}
                   >
                     {item.label}
                   </Link>
                 ))}
                 {musicUrl && (
-                  <div className="mt-3 rounded-lg border border-border/60 p-3 space-y-3">
+                  <div className="mt-3 rounded-lg border border-border/60 p-3 space-y-3 bg-card/40">
                     <button onClick={togglePlay} className={`w-full px-4 py-2 rounded-lg font-heading font-semibold flex items-center justify-center gap-2 ${isPlaying ? 'text-primary bg-primary/10' : 'text-muted-foreground bg-muted/30'}`}>
                       <Music size={18} /> {isPlaying ? 'Выключить музыку' : 'Включить музыку'}
                     </button>
@@ -325,12 +320,12 @@ const Header: React.FC = () => {
                   </div>
                 )}
                 {!isAdmin && (
-                  <Link to="/admin" onClick={() => setMobileOpen(false)} className="mt-3 block w-full rounded-lg px-3 py-3 text-base font-heading font-semibold text-primary bg-primary/5">
+                  <Link to="/admin" onClick={() => setMobileOpen(false)} className="mt-3 block w-full rounded-lg px-4 py-3 text-base font-heading font-semibold text-primary bg-primary/5">
                     <span className="inline-flex items-center gap-2"><AdminShieldIcon /> Админ</span>
                   </Link>
                 )}
               </nav>
-            </motion.aside>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
