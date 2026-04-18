@@ -113,6 +113,10 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    /* background-clip:text часто обрезает первый/последний глиф — даём подушку */
+    padding-inline: 0.06em;
+    padding-bottom: 0.12em;
+    overflow: visible;
   }
 
   .card-glow {
