@@ -12,10 +12,15 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.5 } }),
 };
 
-/** База кнопок героя (отступы, текст). Минимальная высота — отдельно: нижний ряд может быть выше из‑за переноса текста. */
-const heroCtaBoxBase =
-  'inline-flex items-center justify-center gap-2.5 sm:gap-3 rounded-lg px-5 sm:px-6 py-3.5 text-lg sm:text-xl font-bold tracking-wide';
+/** Общая вёрстка кнопок героя; размер текста задаётся отдельно (у Discord крупнее). */
+const heroCtaLayout =
+  'inline-flex items-center justify-center rounded-lg px-5 sm:px-6 py-3.5 font-bold tracking-wide';
+const heroCtaText = 'gap-2.5 sm:gap-3 text-lg sm:text-xl';
+const heroCtaBoxBase = `${heroCtaLayout} ${heroCtaText}`;
 const heroCtaBox = `${heroCtaBoxBase} min-h-14`;
+
+/** Discord: крупнее подпись и лого, чем у нижнего ряда. */
+const heroDiscordCta = `${heroCtaLayout} gap-3 sm:gap-3.5 text-xl sm:text-2xl`;
 
 const Index: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings, getTeamById } = useTournament();
@@ -116,9 +121,9 @@ const Index: React.FC = () => {
                     ? { height: discordBoxHeightPx, minHeight: discordBoxHeightPx, boxSizing: 'border-box' }
                     : undefined
                 }
-                className={`btn-primary-gradient ${heroCtaBoxBase} ${discordBoxHeightPx == null ? 'min-h-14' : ''} box-border w-auto max-w-full sm:w-[calc((100%_-_2rem)_/_2)]`}
+                className={`btn-primary-gradient ${heroDiscordCta} ${discordBoxHeightPx == null ? 'min-h-14' : ''} box-border w-auto max-w-full sm:w-[calc((100%_-_2rem)_/_2)]`}
               >
-                <DiscordIcon size={24} className="shrink-0" />
+                <DiscordIcon size={32} className="shrink-0" />
                 Discord
               </a>
             </div>
