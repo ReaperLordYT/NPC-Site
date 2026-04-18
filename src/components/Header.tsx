@@ -150,6 +150,18 @@ const Header: React.FC = () => {
   const VolumeIcon = muted ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   useEffect(() => {
+    if (!mobileOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    const prevTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.touchAction = prevTouchAction;
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
     return () => {
       if (logoClickResetTimerRef.current) window.clearTimeout(logoClickResetTimerRef.current);
     };
