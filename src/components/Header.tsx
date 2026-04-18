@@ -271,40 +271,65 @@ const Header: React.FC = () => {
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'tween', duration: 0.3 }}
-            className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl lg:hidden"
-          >
-            <div className="flex justify-end p-4">
-              <button onClick={() => setMobileOpen(false)}><X size={24} /></button>
-            </div>
-            <nav className="flex flex-col items-center gap-4 mt-4 px-4 pb-8 max-h-[calc(100vh-72px)] overflow-y-auto">
-              {navItems.map(item => (
-                <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)} className="text-xl font-heading font-semibold text-foreground hover:text-primary transition-colors">
-                  {item.label}
-                </Link>
-              ))}
-              {musicUrl && (
-                <div className="flex items-center gap-3 mt-4">
-                  <button onClick={togglePlay} className={`px-4 py-2 rounded-lg font-heading font-semibold flex items-center gap-2 ${isPlaying ? 'text-primary' : 'text-muted-foreground'}`}>
-                    <Music size={18} /> {isPlaying ? 'Выключить музыку' : 'Включить музыку'}
-                  </button>
-                  <button onClick={() => setMuted(!muted)} className="text-muted-foreground hover:text-foreground">
-                    <VolumeIcon size={18} />
-                  </button>
-                  <input type="range" min="0" max="1" step="0.05" value={muted ? 0 : volume} onChange={e => { setVolume(parseFloat(e.target.value)); setMuted(false); }} className="w-20 accent-primary" />
-                </div>
-              )}
-              {!isAdmin && (
-                <Link to="/admin" onClick={() => setMobileOpen(false)} className="text-xl font-heading font-semibold text-primary flex items-center gap-2">
-                  <AdminShieldIcon /> Админ
-                </Link>
-              )}
-            </nav>
-          </motion.div>
+          <>
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/45 lg:hidden"
+              onClick={() => setMobileOpen(false)}
+              aria-label="Закрыть меню"
+            />
+            <motion.aside
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'tween', duration: 0.25 }}
+              className="fixed right-0 top-0 bottom-0 z-[60] w-[86vw] max-w-sm bg-background border-l border-border/70 shadow-2xl lg:hidden flex flex-col"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-border/60">
+                <span className="font-heading font-semibold text-foreground">Меню</span>
+                <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-md text-muted-foreground hover:text-foreground">
+                  <X size={22} />
+                </button>
+              </div>
+              <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+                {navItems.map(item => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={`block w-full rounded-lg px-3 py-3 text-base font-heading font-semibold transition-colors ${
+                      location.pathname === item.path
+                        ? 'text-primary bg-primary/10'
+                        : 'text-foreground hover:text-primary hover:bg-muted/70'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                {musicUrl && (
+                  <div className="mt-3 rounded-lg border border-border/60 p-3 space-y-3">
+                    <button onClick={togglePlay} className={`w-full px-4 py-2 rounded-lg font-heading font-semibold flex items-center justify-center gap-2 ${isPlaying ? 'text-primary bg-primary/10' : 'text-muted-foreground bg-muted/30'}`}>
+                      <Music size={18} /> {isPlaying ? 'Выключить музыку' : 'Включить музыку'}
+                    </button>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => setMuted(!muted)} className="text-muted-foreground hover:text-foreground">
+                        <VolumeIcon size={18} />
+                      </button>
+                      <input type="range" min="0" max="1" step="0.05" value={muted ? 0 : volume} onChange={e => { setVolume(parseFloat(e.target.value)); setMuted(false); }} className="flex-1 accent-primary" />
+                    </div>
+                  </div>
+                )}
+                {!isAdmin && (
+                  <Link to="/admin" onClick={() => setMobileOpen(false)} className="mt-3 block w-full rounded-lg px-3 py-3 text-base font-heading font-semibold text-primary bg-primary/5">
+                    <span className="inline-flex items-center gap-2"><AdminShieldIcon /> Админ</span>
+                  </Link>
+                )}
+              </nav>
+            </motion.aside>
+          </>
         )}
       </AnimatePresence>
     </header>
