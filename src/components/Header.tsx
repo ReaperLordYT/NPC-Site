@@ -271,13 +271,15 @@ const Header: React.FC = () => {
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
-          <>
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 bg-black/45 lg:hidden"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] lg:hidden"
+          >
+            <button
+              className="absolute inset-0 bg-black/45"
               onClick={() => setMobileOpen(false)}
               aria-label="Закрыть меню"
             />
@@ -286,7 +288,7 @@ const Header: React.FC = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.25 }}
-              className="fixed right-0 top-0 bottom-0 z-[60] w-[86vw] max-w-sm bg-background border-l border-border/70 shadow-2xl lg:hidden flex flex-col"
+              className="absolute right-0 top-0 bottom-0 w-[86vw] max-w-sm bg-background border-l border-border/70 shadow-2xl flex flex-col"
             >
               <div className="flex items-center justify-between p-4 border-b border-border/60">
                 <span className="font-heading font-semibold text-foreground">Меню</span>
@@ -329,7 +331,7 @@ const Header: React.FC = () => {
                 )}
               </nav>
             </motion.aside>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </header>
