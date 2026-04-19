@@ -84,6 +84,14 @@ const Organizers: React.FC = () => {
       if (slashSoundTimeoutRef.current !== null) {
         window.clearTimeout(slashSoundTimeoutRef.current);
       }
+      if (zoomAudioRef.current) {
+        zoomAudioRef.current.pause();
+        zoomAudioRef.current.currentTime = 0;
+      }
+      if (slashAudioRef.current) {
+        slashAudioRef.current.pause();
+        slashAudioRef.current.currentTime = 0;
+      }
     };
   }, []);
 
@@ -164,7 +172,7 @@ const Organizers: React.FC = () => {
                   <video
                     key={`reaper-webm-${mediaPlayKey}`}
                     src={REAPER_WEBM_SRC}
-                    className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] object-contain"
+                    className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] object-contain saturate-[0.9] contrast-[1.08] hue-rotate-[-6deg]"
                     autoPlay
                     muted
                     playsInline
