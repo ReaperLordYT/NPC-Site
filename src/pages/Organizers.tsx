@@ -7,42 +7,56 @@ import { Plus, Trash2, Users, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ReaperWithScythe: React.FC = () => (
-  <svg viewBox="0 0 360 360" className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px]" fill="none">
+  <svg viewBox="0 0 420 420" className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px]" fill="none">
     <defs>
-      <radialGradient id="cloakGlow" cx="50%" cy="50%" r="70%">
-        <stop offset="0%" stopColor="#9ae6ff" stopOpacity="0.35" />
-        <stop offset="100%" stopColor="#091226" stopOpacity="0" />
-      </radialGradient>
-      <linearGradient id="scytheBlade" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#d8f5ff" />
-        <stop offset="55%" stopColor="#95cfe4" />
-        <stop offset="100%" stopColor="#6a9ab4" />
+      <linearGradient id="bladeBlue" x1="0%" y1="0%" x2="100%" y2="80%">
+        <stop offset="0%" stopColor="#dbf4ff" />
+        <stop offset="100%" stopColor="#52b5ff" />
       </linearGradient>
     </defs>
 
-    <circle cx="180" cy="186" r="120" fill="url(#cloakGlow)" />
-
     <motion.g
-      initial={{ rotate: -18, x: -8, y: 10 }}
-      animate={{ rotate: [0, 22, -8], x: [0, 18, -2], y: [0, -6, 0] }}
-      transition={{ duration: 1, ease: 'easeInOut', times: [0, 0.65, 1] }}
-      style={{ transformOrigin: '220px 150px' }}
+      initial={{ rotate: -16 }}
+      animate={{ rotate: [0, 0, 0, 34, 34] }}
+      transition={{ duration: 3.7, times: [0, 0.55, 0.72, 0.8, 1], ease: 'easeInOut' }}
+      style={{ transformOrigin: '292px 165px' }}
     >
-      <line x1="224" y1="88" x2="198" y2="274" stroke="#9c7648" strokeWidth="8" strokeLinecap="round" />
-      <path
-        d="M228 90 C 308 82, 344 126, 330 172 C 298 128, 265 116, 208 118 Z"
-        fill="url(#scytheBlade)"
-        stroke="#d6ecf9"
-        strokeWidth="2.5"
-      />
+      <line x1="292" y1="82" x2="252" y2="338" stroke="#7f8da6" strokeWidth="10" strokeLinecap="round" />
+      <path d="M297 84 C 385 76, 410 132, 355 176 C 322 140, 282 128, 246 128 Z" fill="url(#bladeBlue)" stroke="#d9f2ff" strokeWidth="3" />
     </motion.g>
 
-    <path d="M180 72 C 144 72, 114 98, 102 142 C 90 192, 112 254, 180 302 C 248 254, 270 192, 258 142 C 246 98, 216 72, 180 72Z" fill="#0d1424" stroke="#223754" strokeWidth="3" />
-    <ellipse cx="180" cy="132" rx="44" ry="42" fill="#0a101d" />
-    <circle cx="165" cy="130" r="5" fill="#9ae6ff" />
-    <circle cx="195" cy="130" r="5" fill="#9ae6ff" />
-    <path d="M172 146 Q 180 154 188 146" stroke="#9ae6ff" strokeWidth="2" strokeLinecap="round" />
-    <path d="M138 194 C 156 212, 206 212, 224 194" stroke="#1d2d47" strokeWidth="5" strokeLinecap="round" />
+    <path d="M210 102 C 153 102, 108 145, 95 198 C 76 275, 132 334, 210 356 C 288 334, 344 275, 325 198 C 312 145, 267 102, 210 102Z" fill="#1d3660" />
+    <path d="M210 118 C 171 118, 136 146, 128 188 C 121 228, 140 266, 210 297 C 280 266, 299 228, 292 188 C 284 146, 249 118, 210 118Z" fill="#243f6f" />
+
+    <ellipse cx="210" cy="185" rx="56" ry="50" fill="#f4fbff" />
+    <path d="M178 178 C 186 167, 199 167, 206 178 C 196 184, 189 184, 178 178Z" fill="#0e2748" />
+    <path d="M214 178 C 221 167, 234 167, 242 178 C 231 184, 224 184, 214 178Z" fill="#0e2748" />
+
+    <motion.circle
+      cx="192"
+      cy="178"
+      r="6"
+      fill="#45b7ff"
+      animate={{ r: [6, 6, 7.5, 6, 7.5, 6] }}
+      transition={{ duration: 1.5, delay: 0.8, times: [0, 0.15, 0.35, 0.55, 0.75, 1] }}
+    />
+    <motion.circle
+      cx="228"
+      cy="178"
+      r="6"
+      fill="#45b7ff"
+      animate={{ r: [6, 6, 7.5, 6, 7.5, 6] }}
+      transition={{ duration: 1.5, delay: 0.8, times: [0, 0.15, 0.35, 0.55, 0.75, 1] }}
+    />
+
+    <motion.path
+      d="M188 210 Q 210 232 232 210"
+      stroke="#0e2748"
+      strokeWidth="4"
+      strokeLinecap="round"
+      animate={{ x: [0, -2, 2, -2, 2, 0], y: [0, 1, -1, 1, -1, 0] }}
+      transition={{ duration: 1.5, delay: 0.8, times: [0, 0.2, 0.4, 0.6, 0.8, 1] }}
+    />
   </svg>
 );
 
@@ -77,7 +91,7 @@ const Organizers: React.FC = () => {
       navigate('/');
       setReaperEasterEggActive(false);
       reaperClicksRef.current = 0;
-    }, 2800);
+    }, 4200);
   };
 
   const handleStaffCardClick = (name: string, role: string) => {
@@ -108,53 +122,65 @@ const Organizers: React.FC = () => {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="absolute inset-0 bg-black/80 backdrop-blur-[2px]"
-              initial={{ opacity: 0 }}
+              className="absolute inset-0 bg-transparent"
+              initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
             />
 
             <motion.div
-              className="absolute left-0 top-0 h-full w-1/2 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800/85"
-              initial={{ x: 0 }}
-              animate={{ x: '-110%' }}
-              transition={{ delay: 1.25, duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute left-0 top-0 h-1/2 w-full bg-transparent"
+              initial={{ y: 0 }}
+              animate={{ y: '-105%' }}
+              transition={{ delay: 3.05, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             />
             <motion.div
-              className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-slate-950 via-slate-900 to-slate-800/85"
-              initial={{ x: 0 }}
-              animate={{ x: '110%' }}
-              transition={{ delay: 1.25, duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute left-0 bottom-0 h-1/2 w-full bg-transparent"
+              initial={{ y: 0 }}
+              animate={{ y: '105%' }}
+              transition={{ delay: 3.05, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             />
 
             <motion.div
-              className="absolute left-1/2 top-0 h-full w-[2px] -translate-x-1/2 bg-gradient-to-b from-transparent via-cyan-300 to-transparent shadow-[0_0_24px_rgba(34,211,238,0.9)]"
-              initial={{ scaleY: 0, opacity: 0 }}
-              animate={{ scaleY: [0, 1, 1], opacity: [0, 1, 0] }}
-              transition={{ delay: 0.9, duration: 1.2, times: [0, 0.3, 1], ease: 'easeOut' }}
+              className="absolute left-0 top-1/2 h-[5px] w-full -translate-y-1/2 bg-[#3ec3ff]"
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: [0, 1, 1], opacity: [0, 1, 0.95] }}
+              transition={{ delay: 2.95, duration: 0.55, times: [0, 0.45, 1], ease: 'easeOut' }}
+              style={{ transformOrigin: 'left center' }}
             />
 
-            <div className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-white"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 0] }}
+              transition={{ delay: 3.02, duration: 0.2, ease: 'easeOut' }}
+            />
+
+            <motion.div
+              className="absolute left-0 top-0 h-full w-full bg-white"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.95, 0] }}
+              transition={{ delay: 3.03, duration: 0.22, times: [0, 0.35, 1] }}
+            />
+
+            <motion.div
+              className="absolute left-0 top-1/2 h-[4px] w-full -translate-y-1/2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 0.4, 0], backgroundPositionX: ['0%', '120%'] }}
+              transition={{ delay: 3.0, duration: 0.6, ease: 'easeOut' }}
+              style={{
+                backgroundImage: 'repeating-linear-gradient(90deg, #3ec3ff 0 7px, transparent 7px 16px)',
+                backgroundSize: '220px 100%',
+              }}
+            />
+
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <motion.div
-                className="flex flex-col items-center gap-4"
-                initial={{ scale: 0.7, opacity: 0, rotate: -14 }}
-                animate={{ scale: 1.12, opacity: 1, rotate: 0 }}
-                transition={{ duration: 0.55, ease: 'easeOut' }}
+                className="flex flex-col items-center"
+                initial={{ scale: 0.8, opacity: 1 }}
+                animate={{ scale: [0.8, 5.2, 5.2, 1], opacity: [1, 1, 1, 1] }}
+                transition={{ duration: 3.7, times: [0, 0.16, 0.56, 0.72], ease: 'easeInOut' }}
               >
-                <motion.div
-                  className="rounded-full bg-cyan-400/15 p-6 border border-cyan-300/35"
-                  animate={{ boxShadow: ['0 0 0px rgba(34,211,238,0.2)', '0 0 38px rgba(34,211,238,0.95)', '0 0 12px rgba(34,211,238,0.5)'] }}
-                  transition={{ duration: 1.2, times: [0, 0.45, 1], ease: 'easeInOut' }}
-                >
-                  <ReaperWithScythe />
-                </motion.div>
-                <motion.p
-                  className="font-heading text-cyan-100/90 tracking-widest text-sm"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35, duration: 0.4 }}
-                >
-                  THE REAPER IS COMING
-                </motion.p>
+                <ReaperWithScythe />
               </motion.div>
             </div>
           </motion.div>
