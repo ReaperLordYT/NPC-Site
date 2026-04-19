@@ -60,12 +60,20 @@ const ReaperWithScythe: React.FC = () => (
   </svg>
 );
 
+const EASTER_EGG_DURATION_MS = 5010;
+const SLASH_SOUND_DELAY_MS = 3200;
+const ZOOM_SOUND_SRC = '/audio/reaper-zoom.mp3';
+const SLASH_SOUND_SRC = '/audio/reaper-slash.mp3';
+
 const Organizers: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
   const settings = data.settings;
   const navigate = useNavigate();
   const reaperClicksRef = React.useRef(0);
   const reaperTimeoutRef = React.useRef<number | null>(null);
+  const slashSoundTimeoutRef = React.useRef<number | null>(null);
+  const zoomAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const slashAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const [reaperEasterEggActive, setReaperEasterEggActive] = React.useState(false);
 
   const handleAddStaff = () => {
@@ -86,12 +94,23 @@ const Organizers: React.FC = () => {
   const triggerReaperEasterEgg = () => {
     if (reaperEasterEggActive) return;
 
+    if (zoomAudioRef.current) {
+      zoomAudioRef.current.currentTime = 0;
+      void zoomAudioRef.current.play().catch(() => undefined);
+    }
+
+    slashSoundTimeoutRef.current = window.setTimeout(() => {
+      if (!slashAudioRef.current) return;
+      slashAudioRef.current.currentTime = 0;
+      void slashAudioRef.current.play().catch(() => undefined);
+    }, SLASH_SOUND_DELAY_MS);
+
     setReaperEasterEggActive(true);
     reaperTimeoutRef.current = window.setTimeout(() => {
       navigate('/');
       setReaperEasterEggActive(false);
       reaperClicksRef.current = 0;
-    }, 4200);
+    }, EASTER_EGG_DURATION_MS);
   };
 
   const handleStaffCardClick = (name: string, role: string) => {
@@ -107,11 +126,17 @@ const Organizers: React.FC = () => {
       if (reaperTimeoutRef.current !== null) {
         window.clearTimeout(reaperTimeoutRef.current);
       }
+      if (slashSoundTimeoutRef.current !== null) {
+        window.clearTimeout(slashSoundTimeoutRef.current);
+      }
     };
   }, []);
 
   return (
     <PageLayout>
+      <audio ref={zoomAudioRef} src={ZOOM_SOUND_SRC} preload="auto" />
+      <audio ref={slashAudioRef} src={SLASH_SOUND_SRC} preload="auto" />
+
       <AnimatePresence>
         {reaperEasterEggActive && (
           <motion.div
@@ -131,20 +156,20 @@ const Organizers: React.FC = () => {
               className="absolute left-0 top-0 h-1/2 w-full bg-transparent"
               initial={{ y: 0 }}
               animate={{ y: '-105%' }}
-              transition={{ delay: 3.05, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ delay: 3.22, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             />
             <motion.div
               className="absolute left-0 bottom-0 h-1/2 w-full bg-transparent"
               initial={{ y: 0 }}
               animate={{ y: '105%' }}
-              transition={{ delay: 3.05, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ delay: 3.22, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             />
 
             <motion.div
               className="absolute left-0 top-1/2 h-[5px] w-full -translate-y-1/2 bg-[#3ec3ff]"
               initial={{ scaleX: 0, opacity: 0 }}
               animate={{ scaleX: [0, 1, 1], opacity: [0, 1, 0.95] }}
-              transition={{ delay: 2.95, duration: 0.55, times: [0, 0.45, 1], ease: 'easeOut' }}
+              transition={{ delay: 3.15, duration: 0.55, times: [0, 0.45, 1], ease: 'easeOut' }}
               style={{ transformOrigin: 'left center' }}
             />
 
@@ -152,21 +177,21 @@ const Organizers: React.FC = () => {
               className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-white"
               initial={{ opacity: 0 }}
               animate={{ opacity: [0, 1, 0] }}
-              transition={{ delay: 3.02, duration: 0.2, ease: 'easeOut' }}
+              transition={{ delay: 3.22, duration: 0.2, ease: 'easeOut' }}
             />
 
             <motion.div
               className="absolute left-0 top-0 h-full w-full bg-white"
               initial={{ opacity: 0 }}
               animate={{ opacity: [0, 0.95, 0] }}
-              transition={{ delay: 3.03, duration: 0.22, times: [0, 0.35, 1] }}
+              transition={{ delay: 3.23, duration: 0.22, times: [0, 0.35, 1] }}
             />
 
             <motion.div
               className="absolute left-0 top-1/2 h-[4px] w-full -translate-y-1/2"
               initial={{ opacity: 0 }}
               animate={{ opacity: [0, 1, 0.4, 0], backgroundPositionX: ['0%', '120%'] }}
-              transition={{ delay: 3.0, duration: 0.6, ease: 'easeOut' }}
+              transition={{ delay: 3.2, duration: 0.6, ease: 'easeOut' }}
               style={{
                 backgroundImage: 'repeating-linear-gradient(90deg, #3ec3ff 0 7px, transparent 7px 16px)',
                 backgroundSize: '220px 100%',
@@ -178,7 +203,7 @@ const Organizers: React.FC = () => {
                 className="flex flex-col items-center"
                 initial={{ scale: 0.8, opacity: 1 }}
                 animate={{ scale: [0.8, 5.2, 5.2, 1], opacity: [1, 1, 1, 1] }}
-                transition={{ duration: 3.7, times: [0, 0.16, 0.56, 0.72], ease: 'easeInOut' }}
+                transition={{ duration: 4.45, times: [0, 0.18, 0.58, 0.76], ease: 'easeInOut' }}
               >
                 <ReaperWithScythe />
               </motion.div>
