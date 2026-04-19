@@ -1,5 +1,6 @@
 export interface Player {
   id: string;
+  freePlayerId?: string;
   nickname: string;
   role?: 'pos1' | 'pos2' | 'pos3' | 'pos4' | 'pos5' | 'reserve';
   steamLink: string;

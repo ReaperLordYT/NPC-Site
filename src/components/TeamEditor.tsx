@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useTournament } from '@/context/TournamentContext';
 import { Team, Player } from '@/types/tournament';
 import { X, Plus, Upload, Trash2 } from 'lucide-react';
 
 const emptyPlayer = (isSubstitute = false): Player => ({
   id: Date.now().toString() + Math.random(),
+  freePlayerId: undefined,
   nickname: '',
   role: undefined,
   steamLink: '',
@@ -21,8 +22,9 @@ interface TeamEditorProps {
 }
 
 const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
-  const { data, addTeam, updateTeam } = useTournament();
+  const { data, addTeam, updateTeam, updateSettings } = useTournament();
   const existing = teamId ? data.teams.find(t => t.id === teamId) : null;
+  const freePlayers = data.settings.freePlayers || [];
 
   const [name, setName] = useState(existing?.name || '');
   const [tag, setTag] = useState(existing?.tag || '');
@@ -55,6 +57,47 @@ const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
   };
   const addPlayer = (isSubstitute = false) => setPlayers(prev => [...prev, emptyPlayer(isSubstitute)]);
   const deletePlayer = (index: number) => setPlayers(prev => prev.filter((_, i) => i !== index));
+  const freePlayersById = useMemo(
+    () => new Map(freePlayers.map(player => [player.id, player])),
+    [freePlayers]
+  );
+
+  const toExternalUrl = (value?: string, baseIfId?: (id: string) => string) => {
+    const raw = (value ?? '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^\d{16,20}$/.test(raw) && baseIfId) return baseIfId(raw);
+    return baseIfId ? baseIfId(raw) : raw;
+  };
+
+  const fillFromFreePlayer = (index: number, freePlayerId: string) => {
+    if (!freePlayerId) {
+      updatePlayer(index, 'freePlayerId', undefined);
+      return;
+    }
+
+    const source = freePlayersById.get(freePlayerId);
+    if (!source) return;
+
+    const nextSteam = toExternalUrl(source.steam, id => `https://steamcommunity.com/profiles/${id}`);
+    const nextDotabuff = toExternalUrl(source.dotabuff, id => `https://www.dotabuff.com/players/${id}`);
+
+    setPlayers(prev =>
+      prev.map((player, i) =>
+        i === index
+          ? {
+              ...player,
+              freePlayerId: source.id,
+              nickname: source.nickname || player.nickname,
+              mmr: source.mmr || 0,
+              discordUsername: source.discord || player.discordUsername,
+              steamLink: nextSteam || player.steamLink,
+              dotabuffLink: nextDotabuff || player.dotabuffLink,
+            }
+          : player
+      )
+    );
+  };
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -66,6 +109,20 @@ const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
       titleEmoji: titleEmoji.trim() || undefined,
       titleStyle,
     };
+    const nextTeams = existing
+      ? data.teams.map(t => (t.id === team.id ? team : t))
+      : [...data.teams, team];
+    const busyFreePlayerIds = new Set(
+      nextTeams.flatMap(t => t.players.map(player => player.freePlayerId).filter(Boolean) as string[])
+    );
+
+    updateSettings({
+      freePlayers: freePlayers.map(freePlayer => ({
+        ...freePlayer,
+        status: busyFreePlayerIds.has(freePlayer.id) ? 'busy' : 'free',
+      })),
+    });
+
     if (existing) updateTeam(team);
     else addTeam(team);
     onClose();
@@ -173,6 +230,18 @@ const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
               </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              <select
+                className="bg-background border rounded-lg p-2 text-foreground text-sm"
+                value={player.freePlayerId ?? ''}
+                onChange={e => fillFromFreePlayer(i, e.target.value)}
+              >
+                <option value="">Выбрать из свободных игроков</option>
+                {freePlayers.map(freePlayer => (
+                  <option key={freePlayer.id} value={freePlayer.id}>
+                    {freePlayer.nickname || 'Без ника'} | {freePlayer.mmr || 0} MMR
+                  </option>
+                ))}
+              </select>
               <input className="bg-background border rounded-lg p-2 text-foreground text-sm" placeholder="Никнейм" value={player.nickname} onChange={e => updatePlayer(i, 'nickname', e.target.value)} />
               <input className="bg-background border rounded-lg p-2 text-foreground text-sm" placeholder="MMR" type="number" value={player.mmr || ''} onChange={e => updatePlayer(i, 'mmr', parseInt(e.target.value) || 0)} />
               <input className="bg-background border rounded-lg p-2 text-foreground text-sm" placeholder="Discord" value={player.discordUsername} onChange={e => updatePlayer(i, 'discordUsername', e.target.value)} />
