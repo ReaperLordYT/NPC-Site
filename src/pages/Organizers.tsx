@@ -160,7 +160,7 @@ const Organizers: React.FC = () => {
                   <img
                     src={REAPER_GIF_SRC}
                     alt="Reaper animation"
-                    className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] object-contain"
+                    className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] object-contain mix-blend-screen brightness-110 contrast-125"
                     onError={() => setGifLoaded(false)}
                   />
                 ) : (
