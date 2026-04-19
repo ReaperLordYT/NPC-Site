@@ -11,7 +11,9 @@ const SLASH_SOUND_DELAY_MS = 3200;
 const BASE_URL = import.meta.env.BASE_URL;
 const ZOOM_SOUND_SRC = `${BASE_URL}audio/reaper-zoom.mp3`;
 const SLASH_SOUND_SRC = `${BASE_URL}audio/reaper-slash.mp3`;
+const REAPER_WEBM_SRC = `${BASE_URL}media/reaper.webm`;
 const REAPER_GIF_SRC = `${BASE_URL}media/reaper.gif`;
+const REAPER_WEBM_PLAYBACK_RATE = 2;
 
 const Organizers: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
@@ -22,7 +24,8 @@ const Organizers: React.FC = () => {
   const slashSoundTimeoutRef = React.useRef<number | null>(null);
   const zoomAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const slashAudioRef = React.useRef<HTMLAudioElement | null>(null);
-  const [gifLoaded, setGifLoaded] = React.useState(true);
+  const [mediaType, setMediaType] = React.useState<'webm' | 'gif' | 'none'>('webm');
+  const [mediaPlayKey, setMediaPlayKey] = React.useState(0);
   const [reaperEasterEggActive, setReaperEasterEggActive] = React.useState(false);
 
   const handleAddStaff = () => {
@@ -43,7 +46,8 @@ const Organizers: React.FC = () => {
   const triggerReaperEasterEgg = () => {
     if (reaperEasterEggActive) return;
 
-    setGifLoaded(true);
+    setMediaType('webm');
+    setMediaPlayKey(prev => prev + 1);
 
     if (zoomAudioRef.current) {
       zoomAudioRef.current.currentTime = 0;
@@ -156,16 +160,32 @@ const Organizers: React.FC = () => {
                 animate={{ scale: [0.8, 5.2, 5.2, 1], opacity: [1, 1, 1, 1] }}
                 transition={{ duration: 4.45, times: [0, 0.18, 0.58, 0.76], ease: 'easeInOut' }}
               >
-                {gifLoaded ? (
+                {mediaType === 'webm' && (
+                  <video
+                    key={`reaper-webm-${mediaPlayKey}`}
+                    src={REAPER_WEBM_SRC}
+                    className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] object-contain"
+                    autoPlay
+                    muted
+                    playsInline
+                    onLoadedMetadata={(e) => {
+                      e.currentTarget.playbackRate = REAPER_WEBM_PLAYBACK_RATE;
+                    }}
+                    onError={() => setMediaType('gif')}
+                  />
+                )}
+                {mediaType === 'gif' && (
                   <img
+                    key={`reaper-gif-${mediaPlayKey}`}
                     src={REAPER_GIF_SRC}
                     alt="Reaper animation"
-                    className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] object-contain mix-blend-screen brightness-110 contrast-125"
-                    onError={() => setGifLoaded(false)}
+                    className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] object-contain"
+                    onError={() => setMediaType('none')}
                   />
-                ) : (
+                )}
+                {mediaType === 'none' && (
                   <div className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] flex items-center justify-center text-cyan-100 text-sm">
-                    GIF not found: /public/media/reaper.gif
+                    Media not found: /public/media/reaper.webm or reaper.gif
                   </div>
                 )}
               </motion.div>
