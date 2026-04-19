@@ -13,7 +13,7 @@ const ZOOM_SOUND_SRC = `${BASE_URL}audio/reaper-zoom.mp3`;
 const SLASH_SOUND_SRC = `${BASE_URL}audio/reaper-slash.mp3`;
 const REAPER_WEBM_SRC = `${BASE_URL}media/reaper.webm`;
 const REAPER_GIF_SRC = `${BASE_URL}media/reaper.gif`;
-const REAPER_WEBM_PLAYBACK_RATE = 2;
+const REAPER_WEBM_PLAYBACK_RATE = 1;
 
 const Organizers: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
@@ -172,7 +172,7 @@ const Organizers: React.FC = () => {
                   <video
                     key={`reaper-webm-${mediaPlayKey}`}
                     src={REAPER_WEBM_SRC}
-                    className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] object-contain saturate-[0.9] contrast-[1.08] hue-rotate-[-6deg]"
+                    className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] object-contain"
                     autoPlay
                     muted
                     playsInline
