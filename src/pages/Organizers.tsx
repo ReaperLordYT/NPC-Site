@@ -6,64 +6,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, Trash2, Users, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const ReaperWithScythe: React.FC = () => (
-  <svg viewBox="0 0 420 420" className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px]" fill="none">
-    <defs>
-      <linearGradient id="bladeBlue" x1="0%" y1="0%" x2="100%" y2="80%">
-        <stop offset="0%" stopColor="#dbf4ff" />
-        <stop offset="100%" stopColor="#52b5ff" />
-      </linearGradient>
-    </defs>
-
-    <motion.g
-      initial={{ rotate: -16 }}
-      animate={{ rotate: [0, 0, 0, 34, 34] }}
-      transition={{ duration: 3.7, times: [0, 0.55, 0.72, 0.8, 1], ease: 'easeInOut' }}
-      style={{ transformOrigin: '292px 165px' }}
-    >
-      <line x1="292" y1="82" x2="252" y2="338" stroke="#7f8da6" strokeWidth="10" strokeLinecap="round" />
-      <path d="M297 84 C 385 76, 410 132, 355 176 C 322 140, 282 128, 246 128 Z" fill="url(#bladeBlue)" stroke="#d9f2ff" strokeWidth="3" />
-    </motion.g>
-
-    <path d="M210 102 C 153 102, 108 145, 95 198 C 76 275, 132 334, 210 356 C 288 334, 344 275, 325 198 C 312 145, 267 102, 210 102Z" fill="#1d3660" />
-    <path d="M210 118 C 171 118, 136 146, 128 188 C 121 228, 140 266, 210 297 C 280 266, 299 228, 292 188 C 284 146, 249 118, 210 118Z" fill="#243f6f" />
-
-    <ellipse cx="210" cy="185" rx="56" ry="50" fill="#f4fbff" />
-    <path d="M178 178 C 186 167, 199 167, 206 178 C 196 184, 189 184, 178 178Z" fill="#0e2748" />
-    <path d="M214 178 C 221 167, 234 167, 242 178 C 231 184, 224 184, 214 178Z" fill="#0e2748" />
-
-    <motion.circle
-      cx="192"
-      cy="178"
-      r="6"
-      fill="#45b7ff"
-      animate={{ r: [6, 6, 7.5, 6, 7.5, 6] }}
-      transition={{ duration: 1.5, delay: 0.8, times: [0, 0.15, 0.35, 0.55, 0.75, 1] }}
-    />
-    <motion.circle
-      cx="228"
-      cy="178"
-      r="6"
-      fill="#45b7ff"
-      animate={{ r: [6, 6, 7.5, 6, 7.5, 6] }}
-      transition={{ duration: 1.5, delay: 0.8, times: [0, 0.15, 0.35, 0.55, 0.75, 1] }}
-    />
-
-    <motion.path
-      d="M188 210 Q 210 232 232 210"
-      stroke="#0e2748"
-      strokeWidth="4"
-      strokeLinecap="round"
-      animate={{ x: [0, -2, 2, -2, 2, 0], y: [0, 1, -1, 1, -1, 0] }}
-      transition={{ duration: 1.5, delay: 0.8, times: [0, 0.2, 0.4, 0.6, 0.8, 1] }}
-    />
-  </svg>
-);
-
 const EASTER_EGG_DURATION_MS = 5010;
 const SLASH_SOUND_DELAY_MS = 3200;
 const ZOOM_SOUND_SRC = '/audio/reaper-zoom.mp3';
 const SLASH_SOUND_SRC = '/audio/reaper-slash.mp3';
+const REAPER_GIF_SRC = '/media/reaper.gif';
 
 const Organizers: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
@@ -74,6 +21,7 @@ const Organizers: React.FC = () => {
   const slashSoundTimeoutRef = React.useRef<number | null>(null);
   const zoomAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const slashAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const [gifLoaded, setGifLoaded] = React.useState(true);
   const [reaperEasterEggActive, setReaperEasterEggActive] = React.useState(false);
 
   const handleAddStaff = () => {
@@ -93,6 +41,8 @@ const Organizers: React.FC = () => {
 
   const triggerReaperEasterEgg = () => {
     if (reaperEasterEggActive) return;
+
+    setGifLoaded(true);
 
     if (zoomAudioRef.current) {
       zoomAudioRef.current.currentTime = 0;
@@ -205,7 +155,18 @@ const Organizers: React.FC = () => {
                 animate={{ scale: [0.8, 5.2, 5.2, 1], opacity: [1, 1, 1, 1] }}
                 transition={{ duration: 4.45, times: [0, 0.18, 0.58, 0.76], ease: 'easeInOut' }}
               >
-                <ReaperWithScythe />
+                {gifLoaded ? (
+                  <img
+                    src={REAPER_GIF_SRC}
+                    alt="Reaper animation"
+                    className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] object-contain"
+                    onError={() => setGifLoaded(false)}
+                  />
+                ) : (
+                  <div className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] flex items-center justify-center text-cyan-100 text-sm">
+                    GIF not found: /public/media/reaper.gif
+                  </div>
+                )}
               </motion.div>
             </div>
           </motion.div>
