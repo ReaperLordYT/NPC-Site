@@ -8,9 +8,10 @@ import { useNavigate } from 'react-router-dom';
 
 const EASTER_EGG_DURATION_MS = 5010;
 const SLASH_SOUND_DELAY_MS = 3200;
-const ZOOM_SOUND_SRC = '/audio/reaper-zoom.mp3';
-const SLASH_SOUND_SRC = '/audio/reaper-slash.mp3';
-const REAPER_GIF_SRC = '/media/reaper.gif';
+const BASE_URL = import.meta.env.BASE_URL;
+const ZOOM_SOUND_SRC = `${BASE_URL}audio/reaper-zoom.mp3`;
+const SLASH_SOUND_SRC = `${BASE_URL}audio/reaper-slash.mp3`;
+const REAPER_GIF_SRC = `${BASE_URL}media/reaper.gif`;
 
 const Organizers: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
