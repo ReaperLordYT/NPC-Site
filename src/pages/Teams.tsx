@@ -137,7 +137,7 @@ const Teams: React.FC = () => {
                     </div>
                   )}
                   <div className="min-w-0">
-                    <h3 className="font-heading font-bold text-lg text-foreground group-hover:text-primary transition-colors break-words">
+                    <h3 className="font-body font-bold text-lg text-foreground group-hover:text-primary transition-colors break-words">
                       {team.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">[{team.tag}]</p>
