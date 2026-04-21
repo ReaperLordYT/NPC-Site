@@ -11,6 +11,7 @@ import { useTournament } from "@/context/TournamentContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import LoadingScreen from "@/components/LoadingScreen";
 import SaveButton from "@/components/SaveButton";
+import SiteTour from "@/components/SiteTour";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -56,6 +57,7 @@ const AppInner: React.FC = () => {
     <>
       <ScrollToTop />
       <SaveButton />
+      <SiteTour enabled={data.settings.tutorialEnabled} />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/registration" element={<Registration />} />

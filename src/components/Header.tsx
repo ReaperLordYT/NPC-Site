@@ -181,14 +181,14 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b bg-background/80">
+    <header data-tour="header" className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b bg-background/80">
       <div className="container mx-auto px-3 sm:px-4 flex items-center justify-between h-16 gap-2">
-        <Link to="/" onClick={handleLogoClick} className="font-display text-lg sm:text-xl font-bold gradient-text tracking-wider truncate max-w-[120px] sm:max-w-none">
+        <Link data-tour="brand" to="/" onClick={handleLogoClick} className="font-display text-lg sm:text-xl font-bold gradient-text tracking-wider truncate max-w-[120px] sm:max-w-none">
           Blank
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-1">
+        <nav data-tour="desktop-nav" className="hidden lg:flex items-center gap-1">
           {navItems.map(item => (
             <Link
               key={item.path}
@@ -274,7 +274,7 @@ const Header: React.FC = () => {
               <AdminShieldIcon />
             </Link>
           )}
-          <button onClick={() => setMobileOpen(true)} className="lg:hidden p-1.5 sm:p-2 text-foreground">
+          <button data-tour="mobile-menu-button" onClick={() => setMobileOpen(true)} className="lg:hidden p-1.5 sm:p-2 text-foreground">
             <Menu size={22} />
           </button>
         </div>

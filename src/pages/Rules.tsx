@@ -236,6 +236,7 @@ const Rules: React.FC = () => {
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          data-tour="rules-title"
           className="font-display text-3xl md:text-5xl font-bold gradient-text mb-12 sm:mb-16 text-center"
         >
           Регламент турнира

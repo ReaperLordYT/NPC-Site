@@ -169,7 +169,7 @@ const Schedule: React.FC = () => {
   return (
     <PageLayout>
       <div className="container mx-auto px-4 py-16 sm:py-20">
-        <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text mb-8 text-center">Расписание</h1>
+        <h1 data-tour="schedule-title" className="font-display text-3xl md:text-5xl font-bold gradient-text mb-8 text-center">Расписание</h1>
 
         {/* Filter bar */}
         <div className="mb-6">
