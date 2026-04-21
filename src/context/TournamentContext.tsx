@@ -176,7 +176,6 @@ const defaultSettings: SiteSettings = {
   contactsList: ['4 callings bird (@fakalin)', 'daphne (@dmcmlll)'],
   footerCopyright: '© 2026 NPC CHAMPIONSHIP. Все права защищены.',
   maintenanceEnabled: false,
-  tutorialEnabled: false,
   maintenanceTitle: 'Технические работы',
   maintenanceMessage: 'Сайт временно недоступен. Пожалуйста, зайдите позже.',
 };

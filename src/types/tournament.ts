@@ -136,7 +136,6 @@ export interface SiteSettings {
   contactsList: string[];
   footerCopyright: string;
   maintenanceEnabled: boolean;
-  tutorialEnabled: boolean;
   maintenanceTitle: string;
   maintenanceMessage: string;
 }

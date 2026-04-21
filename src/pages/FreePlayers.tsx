@@ -186,7 +186,7 @@ const FreePlayers: React.FC = () => {
     <PageLayout>
       <div className="container mx-auto px-4 py-16 sm:py-20">
         <div className="flex items-center justify-between gap-3 mb-8 sm:mb-10 flex-wrap">
-          <h1 data-tour="free-players-title" className="font-display text-3xl md:text-5xl font-bold gradient-text">Свободные игроки</h1>
+          <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text">Свободные игроки</h1>
           {isAdmin && isEditing && (
             <button onClick={addPlayer} className="btn-primary-gradient px-4 py-2 rounded-lg flex items-center gap-2 text-sm sm:text-base">
               <Plus size={16} /> Добавить игрока

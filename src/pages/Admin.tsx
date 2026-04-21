@@ -323,17 +323,6 @@ const Admin: React.FC = () => {
                 <option value="on">Включен</option>
               </select>
             </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Режим обучения по сайту</label>
-              <select
-                className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.tutorialEnabled ? 'on' : 'off'}
-                onChange={e => setSettings(p => ({ ...p, tutorialEnabled: e.target.value === 'on' }))}
-              >
-                <option value="off">Выключен</option>
-                <option value="on">Включен</option>
-              </select>
-            </div>
             <div className="md:col-span-2">
               <label className="text-sm text-muted-foreground mb-1 block">Заголовок страницы техработ</label>
               <input

@@ -62,7 +62,7 @@ const Teams: React.FC = () => {
     <PageLayout>
       <div className="container mx-auto px-4 py-16 sm:py-20">
         <div className="flex items-center justify-between gap-3 mb-8 sm:mb-12 flex-wrap">
-          <h1 data-tour="teams-title" className="font-display text-3xl md:text-5xl font-bold gradient-text">Команды</h1>
+          <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text">Команды</h1>
           {isAdmin && isEditing && (
             <button
               onClick={() => setShowEditor(true)}

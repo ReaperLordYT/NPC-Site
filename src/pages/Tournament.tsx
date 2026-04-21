@@ -1093,7 +1093,7 @@ const Tournament: React.FC = () => {
   return (
     <PageLayout>
       <div className="container mx-auto px-4 py-16 sm:py-20">
-        <h1 data-tour="tournament-title" className="font-display text-3xl md:text-5xl font-bold gradient-text mb-8 text-center">Турнир</h1>
+        <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text mb-8 text-center">Турнир</h1>
 
         {/* Tabs */}
         <div className="flex justify-center gap-2 mb-12 flex-wrap">

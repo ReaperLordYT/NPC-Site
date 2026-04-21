@@ -278,7 +278,7 @@ const Organizers: React.FC = () => {
 
         <div className="container mx-auto px-4 py-16 sm:py-20 max-w-4xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 data-tour="organizers-title" className="font-display text-3xl sm:text-4xl font-bold gradient-text mb-4 text-center">Организаторы</h1>
+            <h1 className="font-display text-3xl sm:text-4xl font-bold gradient-text mb-4 text-center">Организаторы</h1>
             <EditableText
               value={settings.organizersIntro}
               onSave={val => updateSettings({ organizersIntro: val })}

@@ -113,7 +113,6 @@ const Index: React.FC = () => {
           <div className="flex w-full flex-col items-center gap-4 sm:gap-5">
             <div className="flex w-full max-w-4xl justify-center">
               <a
-                data-tour="hero-discord"
                 href={settings.discordLink}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -133,7 +132,6 @@ const Index: React.FC = () => {
               className="flex w-full max-w-4xl flex-col flex-wrap justify-center gap-3 sm:flex-row sm:gap-4 sm:items-stretch"
             >
               <a
-                data-tour="hero-register-team"
                 href={settings.googleFormLink}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -152,7 +150,6 @@ const Index: React.FC = () => {
                 </a>
               )}
               <Link
-                data-tour="hero-rules"
                 to="/rules"
                 className={`w-full sm:flex-1 sm:min-w-[200px] justify-center border border-border bg-card/50 hover:bg-card text-foreground font-heading transition-colors ${heroCtaBox}`}
               >
