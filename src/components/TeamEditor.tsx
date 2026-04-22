@@ -165,10 +165,22 @@ const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
         <div>
           <label className="text-sm text-muted-foreground mb-1 block">Логотип</label>
           <input ref={fileRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-          <button onClick={() => fileRef.current?.click()} className="flex items-center gap-2 px-4 py-3 border rounded-lg text-muted-foreground hover:text-foreground w-full">
-            <Upload size={18} /> {logo ? 'Изменить логотип' : 'Загрузить логотип'}
-          </button>
-          {logo && <img src={logo} alt="logo" className="h-12 mt-2 rounded" />}
+          <div className="flex gap-2">
+            <button onClick={() => fileRef.current?.click()} className="flex items-center gap-2 px-4 py-3 border rounded-lg text-muted-foreground hover:text-foreground w-full">
+              <Upload size={18} /> {logo ? 'Изменить логотип' : 'Загрузить логотип'}
+            </button>
+            {logo && (
+              <button
+                type="button"
+                onClick={() => setLogo('')}
+                className="px-3 border rounded-lg text-muted-foreground hover:text-destructive"
+                title="Удалить логотип"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
+          {logo && <img src={logo} alt="logo" className="h-16 w-16 mt-2 rounded-lg object-cover" />}
         </div>
         <div>
           <label className="text-sm text-muted-foreground mb-1 block">Титул команды</label>
@@ -206,7 +218,14 @@ const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
       </h4>
       <div className="space-y-4">
         {players.map((player, i) => (
-          <div key={i} className="bg-background/50 border rounded-xl p-4">
+          <div
+            key={i}
+            className={`bg-background/50 border rounded-xl p-4 ${
+              player.isSubstitute
+                ? 'border-amber-400/45 bg-amber-500/5'
+                : 'border-emerald-400/45 bg-emerald-500/5'
+            }`}
+          >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="font-heading font-semibold text-primary text-sm">

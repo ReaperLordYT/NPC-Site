@@ -130,9 +130,9 @@ const Teams: React.FC = () => {
               <Link to={`/teams/${team.id}`} className="block glass-card rounded-xl p-6 card-glow group">
                 <div className="flex items-center gap-4 mb-4 min-w-0">
                   {team.logo ? (
-                    <img src={team.logo} alt={team.name} className="w-16 h-16 rounded-xl object-cover" />
+                    <img src={team.logo} alt={team.name} className="w-20 h-20 rounded-xl object-cover" />
                   ) : (
-                    <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center font-display text-2xl text-muted-foreground">
+                    <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center font-display text-2xl text-muted-foreground">
                       {team.tag || team.name[0]}
                     </div>
                   )}

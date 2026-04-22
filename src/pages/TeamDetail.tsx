@@ -117,9 +117,9 @@ const TeamDetail: React.FC = () => {
           <div className={`glass-card rounded-2xl p-5 sm:p-8 mb-8 ${team.status === 'withdrawn' ? 'opacity-80' : ''}`}>
             <div className="flex items-start gap-6 mb-6 flex-wrap">
               {team.logo ? (
-                <img src={team.logo} alt={team.name} className="w-24 h-24 rounded-2xl object-cover flex-shrink-0" />
+                <img src={team.logo} alt={team.name} className="w-28 h-28 rounded-2xl object-cover flex-shrink-0" />
               ) : (
-                <div className="w-24 h-24 rounded-2xl bg-muted flex items-center justify-center font-display text-4xl text-muted-foreground flex-shrink-0">
+                <div className="w-28 h-28 rounded-2xl bg-muted flex items-center justify-center font-display text-4xl text-muted-foreground flex-shrink-0">
                   {team.tag || team.name[0]}
                 </div>
               )}
@@ -202,7 +202,14 @@ const TeamDetail: React.FC = () => {
           <h2 className="font-heading text-2xl font-bold mb-6 text-foreground">Состав</h2>
           <div className="space-y-3 mb-10">
             {sortedPlayers.map(player => (
-              <div key={player.id} className="glass-card rounded-xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center gap-4">
+              <div
+                key={player.id}
+                className={`glass-card rounded-xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center gap-4 border ${
+                  player.isSubstitute
+                    ? 'border-amber-400/45 bg-amber-500/5'
+                    : 'border-emerald-400/45 bg-emerald-500/5'
+                }`}
+              >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     {player.isCaptain && <Crown size={16} className="text-yellow-400" />}
@@ -255,7 +262,12 @@ const TeamDetail: React.FC = () => {
               {sortedPlayers.map(player => {
                 const isActive = activePlayerIds.includes(player.id);
                 return (
-                  <label key={`lineup-${player.id}`} className="flex items-start sm:items-center justify-between gap-3 bg-background/40 border rounded-lg px-3 py-2">
+                  <label
+                    key={`lineup-${player.id}`}
+                    className={`flex items-start sm:items-center justify-between gap-3 bg-background/40 border rounded-lg px-3 py-2 ${
+                      player.isSubstitute ? 'border-amber-400/45 bg-amber-500/5' : 'border-emerald-400/45 bg-emerald-500/5'
+                    }`}
+                  >
                     <span className="text-sm text-foreground break-words">
                       {player.nickname || 'Без ника'} ({player.mmr || 0} MMR)
                       {player.isCaptain ? ' • Капитан' : ''}
