@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
-import { getRegistrationState } from '@/lib/registrationDeadline';
+import { useRegistrationDeadline } from '@/hooks/useRegistrationDeadline';
 import EditableText from '@/components/EditableText';
 import { motion } from 'framer-motion';
 import { FileText, Users } from 'lucide-react';
@@ -10,7 +10,7 @@ import { FileText, Users } from 'lucide-react';
 const Registration: React.FC = () => {
   const { data, updateSettings } = useTournament();
   const settings = data.settings;
-  const registrationState = getRegistrationState(settings.registrationDeadlineAt);
+  const registrationState = useRegistrationDeadline(settings.registrationDeadlineAt);
 
   return (
     <PageLayout>

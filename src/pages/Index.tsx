@@ -2,7 +2,8 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTournament } from '@/context/TournamentContext';
-import { getRegistrationState } from '@/lib/registrationDeadline';
+import { useRegistrationDeadline } from '@/hooks/useRegistrationDeadline';
+import { formatRemainingTime } from '@/lib/registrationDeadline';
 import EditableText from '@/components/EditableText';
 import PageLayout from '@/components/PageLayout';
 import { Calendar, Users, Trophy, FileText, ChevronRight, Tv, Plus, Trash2 } from 'lucide-react';
@@ -26,7 +27,7 @@ const heroDiscordCta = `${heroCtaLayout} gap-3 sm:gap-3.5 text-xl sm:text-2xl`;
 const Index: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings, getTeamById } = useTournament();
   const settings = data.settings;
-  const registrationState = getRegistrationState(settings.registrationDeadlineAt);
+  const registrationState = useRegistrationDeadline(settings.registrationDeadlineAt);
   const scheduledMatches = data.matches
     .filter(match => match.status === 'scheduled')
     .sort((a, b) => `${a.scheduledDate}${a.scheduledTime}`.localeCompare(`${b.scheduledDate}${b.scheduledTime}`))
@@ -112,6 +113,18 @@ const Index: React.FC = () => {
             as="p"
             className="text-base sm:text-lg md:text-xl text-muted-foreground font-heading mb-8 sm:mb-10 max-w-2xl mx-auto"
           />
+          {!registrationState.isClosed && registrationState.hasDeadline && (
+            <div className="mb-5 flex w-full justify-end">
+              <div className="w-full max-w-xs rounded-xl border border-primary/30 bg-primary/10 p-4 text-left shadow-[0_0_20px_rgba(139,92,246,0.18)]">
+                <p className="text-xs uppercase tracking-wide text-primary/80 font-heading mb-1">Уведомление</p>
+                <p className="text-sm sm:text-base font-heading text-foreground">Успейте зарегистрироваться</p>
+                <p className="text-sm text-primary mt-1">
+                  До конца регистрации осталось {formatRemainingTime(registrationState.remainingMs)}.
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1">Время указано по МСК.</p>
+              </div>
+            </div>
+          )}
           {registrationState.isClosed && (
             <div className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm sm:text-base font-heading text-destructive">
               Регистрация команд закрыта. Новые заявки больше не принимаются.
