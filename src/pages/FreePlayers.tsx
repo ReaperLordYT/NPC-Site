@@ -8,6 +8,7 @@ const FreePlayers: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
   const players = data.settings.freePlayers;
   const freePlayerFormLink = data.settings.freePlayerFormLink?.trim();
+  const isFreePlayersRegistrationClosed = data.settings.freePlayersRegistrationClosed;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<Array<'carry' | 'mid' | 'offlane' | 'soft' | 'hard'>>([]);
@@ -198,7 +199,7 @@ const FreePlayers: React.FC = () => {
           <p className="text-base sm:text-lg text-muted-foreground">
             У тебя нет команды? Не беда - подай заявку как свободный игрок
           </p>
-          {freePlayerFormLink && (
+          {freePlayerFormLink && !isFreePlayersRegistrationClosed && (
             <a
               href={freePlayerFormLink}
               target="_blank"
@@ -208,12 +209,17 @@ const FreePlayers: React.FC = () => {
               <FileText size={18} /> Подать заявку как свободный игрок
             </a>
           )}
+          {isFreePlayersRegistrationClosed && (
+            <div className="mt-4 inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-lg border border-border bg-card/50 text-muted-foreground w-full sm:w-auto">
+              <Lock size={18} /> Регистрация свободных игроков закрыта
+            </div>
+          )}
           {!freePlayerFormLink && isAdmin && (
             <p className="text-xs text-muted-foreground mt-3">
               Добавьте ссылку формы в админке: "Форма для свободных игроков".
             </p>
           )}
-          {!freePlayerFormLink && !isAdmin && (
+          {!freePlayerFormLink && !isAdmin && !isFreePlayersRegistrationClosed && (
             <p className="text-xs text-muted-foreground mt-3">
               Форма заявки появится чуть позже.
             </p>

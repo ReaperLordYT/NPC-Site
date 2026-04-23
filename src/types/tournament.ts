@@ -104,9 +104,10 @@ export interface SiteSettings {
   discordLink: string;
   googleFormLink: string;
   freePlayerFormLink: string;
-  /** ISO string in local format: YYYY-MM-DDTHH:mm */
+  /** Moscow time string format: DD-MM-YYYY-HH:mm */
   registrationDeadlineAt: string;
   showRegistrationAlertsOnHome: boolean;
+  freePlayersRegistrationClosed: boolean;
   tournamentName: string;
   tournamentDates: string;
   rulesMode: 'page' | 'link';

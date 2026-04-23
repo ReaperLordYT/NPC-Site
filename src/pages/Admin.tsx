@@ -296,6 +296,17 @@ const Admin: React.FC = () => {
                   </select>
                 </div>
                 <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Регистрация свободных игроков</label>
+                  <select
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.freePlayersRegistrationClosed ? 'closed' : 'open'}
+                    onChange={e => setSettings(p => ({ ...p, freePlayersRegistrationClosed: e.target.value === 'closed' }))}
+                  >
+                    <option value="open">Открыта</option>
+                    <option value="closed">Закрыта</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
                   <label className="text-sm text-muted-foreground mb-1 block">Текст: дедлайн регистрации</label>
                   <input
                     className="w-full bg-background border rounded-lg p-3 text-foreground"

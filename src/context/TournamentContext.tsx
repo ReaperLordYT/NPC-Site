@@ -123,6 +123,7 @@ const defaultSettings: SiteSettings = {
   freePlayerFormLink: '',
   registrationDeadlineAt: '28-03-2026-00:00',
   showRegistrationAlertsOnHome: true,
+  freePlayersRegistrationClosed: false,
   tournamentName: 'NPC CHAMPIONSHIP',
   tournamentDates: '28.03.2026 – 29.03.2026',
   rulesMode: 'page',

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
 import { useRegistrationDeadline } from '@/hooks/useRegistrationDeadline';
+import { formatRemainingTime } from '@/lib/registrationDeadline';
 import EditableText from '@/components/EditableText';
 import { motion } from 'framer-motion';
 import { FileText, Users } from 'lucide-react';
@@ -23,6 +24,15 @@ const Registration: React.FC = () => {
             as="p"
             className="text-center text-muted-foreground mb-10 sm:mb-12 text-base sm:text-lg"
           />
+          {!registrationState.isClosed && registrationState.hasDeadline && (
+            <div className="mb-8 rounded-xl border border-primary/35 bg-primary/10 p-4 text-center">
+              <p className="font-heading text-foreground">До конца регистрации команд:</p>
+              <p className="text-primary font-heading text-lg mt-1">
+                {formatRemainingTime(registrationState.remainingMs)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">Отсчет ведется по МСК.</p>
+            </div>
+          )}
 
           <div className="glass-card rounded-2xl p-5 sm:p-8 mb-8 card-glow">
             <h2 className="font-heading text-xl sm:text-2xl font-bold mb-4 text-foreground flex items-center gap-2">

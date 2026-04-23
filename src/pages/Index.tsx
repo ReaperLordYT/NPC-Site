@@ -6,7 +6,7 @@ import { useRegistrationDeadline } from '@/hooks/useRegistrationDeadline';
 import { formatRemainingTime } from '@/lib/registrationDeadline';
 import EditableText from '@/components/EditableText';
 import PageLayout from '@/components/PageLayout';
-import { Calendar, Users, Trophy, FileText, ChevronRight, Tv, Plus, Trash2, X } from 'lucide-react';
+import { Calendar, Users, Trophy, FileText, ChevronRight, Tv, Plus, Trash2, X, Lock } from 'lucide-react';
 import { DiscordIcon } from '@/components/icons/DiscordIcon';
 
 const fadeUp = {
@@ -28,6 +28,8 @@ const Index: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings, getTeamById } = useTournament();
   const settings = data.settings;
   const registrationState = useRegistrationDeadline(settings.registrationDeadlineAt);
+  const isTeamRegistrationClosed = registrationState.isClosed;
+  const isFreePlayersRegistrationClosed = settings.freePlayersRegistrationClosed;
   const showAlertsOnHome = settings.showRegistrationAlertsOnHome;
   const [notificationDismissed, setNotificationDismissed] = useState(false);
   const scheduledMatches = data.matches
@@ -150,11 +152,16 @@ const Index: React.FC = () => {
               ref={heroCtaRowRef}
               className="flex w-full max-w-4xl flex-col flex-wrap justify-center gap-3 sm:flex-row sm:gap-4 sm:items-stretch"
             >
-              {registrationState.isClosed ? (
+              {isTeamRegistrationClosed ? (
                 <div
-                  className={`w-full sm:flex-1 sm:min-w-[200px] justify-center rounded-lg border border-border bg-card/50 text-muted-foreground font-heading ${heroCtaBox}`}
+                  className={`relative w-full sm:flex-1 sm:min-w-[200px] justify-center overflow-hidden rounded-lg border border-border/80 bg-card/50 text-muted-foreground font-heading ${heroCtaBox}`}
                 >
-                  <Users size={24} /> Регистрация закрыта
+                  <span className="pointer-events-none absolute inset-0">
+                    <span className="absolute left-[-20%] top-1/2 h-[1px] w-[140%] -translate-y-1/2 -rotate-[18deg] bg-border/70" />
+                    <span className="absolute left-[-20%] top-1/2 h-[1px] w-[140%] -translate-y-1/2 rotate-[18deg] bg-border/70" />
+                  </span>
+                  <Lock size={18} className="shrink-0" />
+                  Регистрация закрыта
                 </div>
               ) : (
                 <a
@@ -167,14 +174,27 @@ const Index: React.FC = () => {
                 </a>
               )}
               {settings.freePlayerFormLink?.trim() && (
-                <a
-                  href={settings.freePlayerFormLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`btn-primary-gradient w-full sm:flex-1 sm:min-w-[200px] justify-center ${heroCtaBox}`}
-                >
-                  <Users size={24} /> Я свободный игрок
-                </a>
+                isFreePlayersRegistrationClosed ? (
+                  <div
+                    className={`relative w-full sm:flex-1 sm:min-w-[200px] justify-center overflow-hidden rounded-lg border border-border/80 bg-card/50 text-muted-foreground font-heading ${heroCtaBox}`}
+                  >
+                    <span className="pointer-events-none absolute inset-0">
+                      <span className="absolute left-[-20%] top-1/2 h-[1px] w-[140%] -translate-y-1/2 -rotate-[18deg] bg-border/70" />
+                      <span className="absolute left-[-20%] top-1/2 h-[1px] w-[140%] -translate-y-1/2 rotate-[18deg] bg-border/70" />
+                    </span>
+                    <Lock size={18} className="shrink-0" />
+                    Регистрация свободных закрыта
+                  </div>
+                ) : (
+                  <a
+                    href={settings.freePlayerFormLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`btn-primary-gradient w-full sm:flex-1 sm:min-w-[200px] justify-center ${heroCtaBox}`}
+                  >
+                    <Users size={24} /> Я свободный игрок
+                  </a>
+                )
               )}
               <Link
                 to="/rules"
