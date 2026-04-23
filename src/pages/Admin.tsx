@@ -28,6 +28,22 @@ const Admin: React.FC = () => {
     [settings, data.settings]
   );
 
+  const applyDeadlineMask = (raw: string) => {
+    const digits = raw.replace(/\D/g, '').slice(0, 12);
+    const dd = digits.slice(0, 2);
+    const mm = digits.slice(2, 4);
+    const yyyy = digits.slice(4, 8);
+    const hh = digits.slice(8, 10);
+    const min = digits.slice(10, 12);
+
+    let masked = dd;
+    if (mm) masked += `-${mm}`;
+    if (yyyy) masked += `-${yyyy}`;
+    if (hh) masked += `-${hh}`;
+    if (min) masked += `:${min}`;
+    return masked;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -262,8 +278,10 @@ const Admin: React.FC = () => {
                   <input
                     className="w-full bg-background border rounded-lg p-3 text-foreground"
                     value={settings.registrationDeadlineAt || ''}
-                    onChange={e => setSettings(p => ({ ...p, registrationDeadlineAt: e.target.value }))}
+                    onChange={e => setSettings(p => ({ ...p, registrationDeadlineAt: applyDeadlineMask(e.target.value) }))}
                     placeholder="24-04-2026-12:30"
+                    inputMode="numeric"
+                    maxLength={16}
                   />
                 </div>
                 <div className="md:col-span-2">

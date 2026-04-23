@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTournament } from '@/context/TournamentContext';
@@ -6,7 +6,7 @@ import { useRegistrationDeadline } from '@/hooks/useRegistrationDeadline';
 import { formatRemainingTime } from '@/lib/registrationDeadline';
 import EditableText from '@/components/EditableText';
 import PageLayout from '@/components/PageLayout';
-import { Calendar, Users, Trophy, FileText, ChevronRight, Tv, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Users, Trophy, FileText, ChevronRight, Tv, Plus, Trash2, X } from 'lucide-react';
 import { DiscordIcon } from '@/components/icons/DiscordIcon';
 
 const fadeUp = {
@@ -29,6 +29,7 @@ const Index: React.FC = () => {
   const settings = data.settings;
   const registrationState = useRegistrationDeadline(settings.registrationDeadlineAt);
   const showAlertsOnHome = settings.showRegistrationAlertsOnHome;
+  const [notificationDismissed, setNotificationDismissed] = useState(false);
   const scheduledMatches = data.matches
     .filter(match => match.status === 'scheduled')
     .sort((a, b) => `${a.scheduledDate}${a.scheduledTime}`.localeCompare(`${b.scheduledDate}${b.scheduledTime}`))
@@ -87,6 +88,10 @@ const Index: React.FC = () => {
     };
   }, [settings.freePlayerFormLink]);
 
+  useEffect(() => {
+    setNotificationDismissed(false);
+  }, [settings.registrationDeadlineAt]);
+
   return (
     <PageLayout>
       {/* Hero */}
@@ -114,14 +119,22 @@ const Index: React.FC = () => {
             as="p"
             className="text-base sm:text-lg md:text-xl text-muted-foreground font-heading mb-8 sm:mb-10 max-w-2xl mx-auto"
           />
-          {!registrationState.isClosed && registrationState.hasDeadline && showAlertsOnHome && (
+          {!registrationState.isClosed && registrationState.hasDeadline && showAlertsOnHome && !notificationDismissed && (
             <motion.div
-              initial={{ opacity: 0, x: 24, y: -8 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
-              transition={{ duration: 0.35 }}
-              className="fixed right-4 top-20 z-40 w-[min(22rem,calc(100vw-2rem))] sm:right-6 sm:top-24"
+              initial={{ opacity: 0, x: 96, y: 96, scale: 0.92 }}
+              animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+              transition={{ duration: 0.38, ease: 'easeOut' }}
+              className="fixed bottom-4 right-4 z-40 w-[min(22rem,calc(100vw-2rem))] sm:bottom-6 sm:right-6"
             >
-              <div className="rounded-xl border border-primary/35 bg-background/90 p-4 text-left shadow-[0_10px_35px_rgba(22,35,75,0.45)] backdrop-blur">
+              <div className="relative rounded-xl border border-primary/35 bg-background/90 p-4 text-left shadow-[0_10px_35px_rgba(22,35,75,0.45)] backdrop-blur">
+                <button
+                  type="button"
+                  onClick={() => setNotificationDismissed(true)}
+                  className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground/80 transition hover:bg-white/10 hover:text-foreground"
+                  aria-label="Закрыть уведомление"
+                >
+                  <X size={14} />
+                </button>
                 <p className="text-xs uppercase tracking-wide text-primary/80 font-heading mb-1">Уведомление</p>
                 <p className="text-sm sm:text-base font-heading text-foreground">Успейте зарегистрироваться</p>
                 <p className="text-sm text-primary mt-1">
