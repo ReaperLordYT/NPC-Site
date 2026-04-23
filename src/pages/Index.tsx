@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useTournament } from '@/context/TournamentContext';
 import { useRegistrationDeadline } from '@/hooks/useRegistrationDeadline';
 import { formatRemainingTime } from '@/lib/registrationDeadline';
@@ -119,31 +119,6 @@ const Index: React.FC = () => {
             as="p"
             className="text-base sm:text-lg md:text-xl text-muted-foreground font-heading mb-8 sm:mb-10 max-w-2xl mx-auto"
           />
-          {!registrationState.isClosed && registrationState.hasDeadline && showAlertsOnHome && !notificationDismissed && (
-            <motion.div
-              initial={{ opacity: 0, x: 96, y: 96, scale: 0.92 }}
-              animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-              transition={{ duration: 0.38, ease: 'easeOut' }}
-              className="fixed bottom-4 right-4 z-40 w-[min(22rem,calc(100vw-2rem))] sm:bottom-6 sm:right-6"
-            >
-              <div className="relative rounded-xl border border-primary/35 bg-background/90 p-4 text-left shadow-[0_10px_35px_rgba(22,35,75,0.45)] backdrop-blur">
-                <button
-                  type="button"
-                  onClick={() => setNotificationDismissed(true)}
-                  className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground/80 transition hover:bg-white/10 hover:text-foreground"
-                  aria-label="Закрыть уведомление"
-                >
-                  <X size={14} />
-                </button>
-                <p className="text-xs uppercase tracking-wide text-primary/80 font-heading mb-1">Уведомление</p>
-                <p className="text-sm sm:text-base font-heading text-foreground">Успейте зарегистрироваться</p>
-                <p className="text-sm text-primary mt-1">
-                  До конца регистрации осталось {formatRemainingTime(registrationState.remainingMs)}.
-                </p>
-                <p className="text-[11px] text-muted-foreground mt-1">Время указано по МСК.</p>
-              </div>
-            </motion.div>
-          )}
           {registrationState.isClosed && showAlertsOnHome && (
             <div className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm sm:text-base font-heading text-destructive">
               Регистрация команд закрыта. Новые заявки больше не принимаются.
@@ -219,6 +194,35 @@ const Index: React.FC = () => {
           )}
         </motion.div>
       </section>
+      <AnimatePresence>
+        {!registrationState.isClosed && registrationState.hasDeadline && showAlertsOnHome && !notificationDismissed && (
+          <motion.div
+            key="registration-deadline-toast"
+            initial={{ opacity: 0, x: 60, y: 60, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 48, y: 48, scale: 0.92 }}
+            transition={{ duration: 0.32, ease: 'easeOut' }}
+            className="fixed bottom-4 right-4 z-40 w-[min(22rem,calc(100vw-2rem))] sm:bottom-6 sm:right-6"
+          >
+            <div className="relative rounded-xl border border-primary/35 bg-background/90 p-4 text-left shadow-[0_10px_35px_rgba(22,35,75,0.45)] backdrop-blur">
+              <button
+                type="button"
+                onClick={() => setNotificationDismissed(true)}
+                className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground/80 transition hover:bg-white/10 hover:text-foreground"
+                aria-label="Закрыть уведомление"
+              >
+                <X size={14} />
+              </button>
+              <p className="text-xs uppercase tracking-wide text-primary/80 font-heading mb-1">Уведомление</p>
+              <p className="text-sm sm:text-base font-heading text-foreground">Успейте зарегистрироваться</p>
+              <p className="text-sm text-primary mt-1">
+                До конца регистрации осталось {formatRemainingTime(registrationState.remainingMs)}.
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-1">Время указано по МСК.</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* About */}
       <section className="container mx-auto px-4 py-20">
