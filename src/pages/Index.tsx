@@ -28,6 +28,7 @@ const Index: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings, getTeamById } = useTournament();
   const settings = data.settings;
   const registrationState = useRegistrationDeadline(settings.registrationDeadlineAt);
+  const showAlertsOnHome = settings.showRegistrationAlertsOnHome;
   const scheduledMatches = data.matches
     .filter(match => match.status === 'scheduled')
     .sort((a, b) => `${a.scheduledDate}${a.scheduledTime}`.localeCompare(`${b.scheduledDate}${b.scheduledTime}`))
@@ -113,9 +114,14 @@ const Index: React.FC = () => {
             as="p"
             className="text-base sm:text-lg md:text-xl text-muted-foreground font-heading mb-8 sm:mb-10 max-w-2xl mx-auto"
           />
-          {!registrationState.isClosed && registrationState.hasDeadline && (
-            <div className="mb-5 flex w-full justify-end">
-              <div className="w-full max-w-xs rounded-xl border border-primary/30 bg-primary/10 p-4 text-left shadow-[0_0_20px_rgba(139,92,246,0.18)]">
+          {!registrationState.isClosed && registrationState.hasDeadline && showAlertsOnHome && (
+            <motion.div
+              initial={{ opacity: 0, x: 24, y: -8 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              transition={{ duration: 0.35 }}
+              className="fixed right-4 top-20 z-40 w-[min(22rem,calc(100vw-2rem))] sm:right-6 sm:top-24"
+            >
+              <div className="rounded-xl border border-primary/35 bg-background/90 p-4 text-left shadow-[0_10px_35px_rgba(22,35,75,0.45)] backdrop-blur">
                 <p className="text-xs uppercase tracking-wide text-primary/80 font-heading mb-1">Уведомление</p>
                 <p className="text-sm sm:text-base font-heading text-foreground">Успейте зарегистрироваться</p>
                 <p className="text-sm text-primary mt-1">
@@ -123,14 +129,14 @@ const Index: React.FC = () => {
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-1">Время указано по МСК.</p>
               </div>
-            </div>
+            </motion.div>
           )}
-          {registrationState.isClosed && (
+          {registrationState.isClosed && showAlertsOnHome && (
             <div className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm sm:text-base font-heading text-destructive">
               Регистрация команд закрыта. Новые заявки больше не принимаются.
             </div>
           )}
-          {!registrationState.isClosed && registrationState.isClosingSoon && (
+          {!registrationState.isClosed && registrationState.isClosingSoon && showAlertsOnHome && (
             <div className="mb-6 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm sm:text-base font-heading text-amber-200">
               Регистрация команд завершится в течение 24 часов.
             </div>

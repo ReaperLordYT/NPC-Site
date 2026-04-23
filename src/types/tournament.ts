@@ -106,6 +106,7 @@ export interface SiteSettings {
   freePlayerFormLink: string;
   /** ISO string in local format: YYYY-MM-DDTHH:mm */
   registrationDeadlineAt: string;
+  showRegistrationAlertsOnHome: boolean;
   tournamentName: string;
   tournamentDates: string;
   rulesMode: 'page' | 'link';

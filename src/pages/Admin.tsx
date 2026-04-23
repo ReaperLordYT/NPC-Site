@@ -199,38 +199,165 @@ const Admin: React.FC = () => {
               <Settings size={22} className="text-primary" /> Настройки сайта
             </h2>
           </summary>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Название турнира (и заголовок вкладки браузера)</label>
-              <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.tournamentName} onChange={e => setSettings(p => ({ ...p, tournamentName: e.target.value }))} />
+          <div className="space-y-6">
+            <div className="rounded-xl border border-border/60 p-4 sm:p-5">
+              <h3 className="font-heading font-bold text-foreground mb-4">Основное</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Название турнира (и заголовок вкладки браузера)</label>
+                  <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.tournamentName} onChange={e => setSettings(p => ({ ...p, tournamentName: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Даты</label>
+                  <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.tournamentDates} onChange={e => setSettings(p => ({ ...p, tournamentDates: e.target.value }))} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Страница «Организаторы»: текст под заголовком</label>
+                  <input
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.organizersIntro}
+                    onChange={e => setSettings(p => ({ ...p, organizersIntro: e.target.value }))}
+                    placeholder="Команда, которая стоит за NPC CHAMPIONSHIP"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Discord ссылка</label>
+                  <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.discordLink} onChange={e => setSettings(p => ({ ...p, discordLink: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Ссылка на регламент (Google Docs)</label>
+                  <input className="w-full bg-background border rounded-lg p-3 text-foreground" placeholder="https://docs.google.com/..." value={settings.rulesLink} onChange={e => setSettings(p => ({ ...p, rulesLink: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Режим регламента</label>
+                  <select className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.rulesMode} onChange={e => setSettings(p => ({ ...p, rulesMode: e.target.value as 'page' | 'link' }))}>
+                    <option value="page">Страница на сайте</option>
+                    <option value="link">Внешняя ссылка (Google Docs)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Текст в футере (копирайт)</label>
+                  <input
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.footerCopyright}
+                    onChange={e => setSettings(p => ({ ...p, footerCopyright: e.target.value }))}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-1 block">Страница «Организаторы»: текст под заголовком</label>
-              <input
-                className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.organizersIntro}
-                onChange={e => setSettings(p => ({ ...p, organizersIntro: e.target.value }))}
-                placeholder="Команда, которая стоит за NPC CHAMPIONSHIP"
-              />
+
+            <div className="rounded-xl border border-border/60 p-4 sm:p-5">
+              <h3 className="font-heading font-bold text-foreground mb-4">Регистрация</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Google Form ссылка</label>
+                  <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.googleFormLink} onChange={e => setSettings(p => ({ ...p, googleFormLink: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Форма для свободных игроков</label>
+                  <input className="w-full bg-background border rounded-lg p-3 text-foreground" placeholder="https://docs.google.com/forms/..." value={settings.freePlayerFormLink} onChange={e => setSettings(p => ({ ...p, freePlayerFormLink: e.target.value }))} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Дедлайн регистрации (МСК, формат: ДД-ММ-ГГГГ-ЧЧ:ММ)</label>
+                  <input
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.registrationDeadlineAt || ''}
+                    onChange={e => setSettings(p => ({ ...p, registrationDeadlineAt: e.target.value }))}
+                    placeholder="24-04-2026-12:30"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Уведомления о дедлайне на главной</label>
+                  <select
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.showRegistrationAlertsOnHome ? 'on' : 'off'}
+                    onChange={e => setSettings(p => ({ ...p, showRegistrationAlertsOnHome: e.target.value === 'on' }))}
+                  >
+                    <option value="on">Включены</option>
+                    <option value="off">Выключены</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Текст: дедлайн регистрации</label>
+                  <input
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.registrationDeadlineText}
+                    onChange={e => setSettings(p => ({ ...p, registrationDeadlineText: e.target.value }))}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Текст: как подать заявку</label>
+                  <textarea
+                    className="w-full bg-background border rounded-lg p-3 text-foreground min-h-[88px]"
+                    value={settings.registrationHowToText}
+                    onChange={e => setSettings(p => ({ ...p, registrationHowToText: e.target.value }))}
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Даты</label>
-              <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.tournamentDates} onChange={e => setSettings(p => ({ ...p, tournamentDates: e.target.value }))} />
+
+            <div className="rounded-xl border border-border/60 p-4 sm:p-5">
+              <h3 className="font-heading font-bold text-foreground mb-4">Режимы и системные плашки</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Режим турнира</label>
+                  <select
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.tournamentCompleted ? 'completed' : 'active'}
+                    onChange={e => setSettings(p => ({ ...p, tournamentCompleted: e.target.value === 'completed' }))}
+                  >
+                    <option value="active">Активный (расписание готовится)</option>
+                    <option value="completed">Завершён</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Режим техработ</label>
+                  <select
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.maintenanceEnabled ? 'on' : 'off'}
+                    onChange={e => setSettings(p => ({ ...p, maintenanceEnabled: e.target.value === 'on' }))}
+                  >
+                    <option value="off">Выключен</option>
+                    <option value="on">Включен</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Заголовок страницы техработ</label>
+                  <input
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.maintenanceTitle}
+                    onChange={e => setSettings(p => ({ ...p, maintenanceTitle: e.target.value }))}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Сообщение на странице техработ</label>
+                  <textarea
+                    className="w-full bg-background border rounded-lg p-3 text-foreground min-h-[90px]"
+                    value={settings.maintenanceMessage}
+                    onChange={e => setSettings(p => ({ ...p, maintenanceMessage: e.target.value }))}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Плашка: расписание готовится</label>
+                  <input
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.schedulePreparingText}
+                    onChange={e => setSettings(p => ({ ...p, schedulePreparingText: e.target.value }))}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Плашка: турнир завершён</label>
+                  <input
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.scheduleCompletedText}
+                    onChange={e => setSettings(p => ({ ...p, scheduleCompletedText: e.target.value }))}
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Discord ссылка</label>
-              <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.discordLink} onChange={e => setSettings(p => ({ ...p, discordLink: e.target.value }))} />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Google Form ссылка</label>
-              <input className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.googleFormLink} onChange={e => setSettings(p => ({ ...p, googleFormLink: e.target.value }))} />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Форма для свободных игроков</label>
-              <input className="w-full bg-background border rounded-lg p-3 text-foreground" placeholder="https://docs.google.com/forms/..." value={settings.freePlayerFormLink} onChange={e => setSettings(p => ({ ...p, freePlayerFormLink: e.target.value }))} />
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-2 block">Контакты (для страницы контактов и футера)</label>
+
+            <div className="rounded-xl border border-border/60 p-4 sm:p-5">
+              <h3 className="font-heading font-bold text-foreground mb-4">Контакты</h3>
               <div className="space-y-2">
                 {settings.contactsList.map((contact, idx) => (
                   <div key={`${contact}-${idx}`} className="flex gap-2">
@@ -266,105 +393,9 @@ const Admin: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-1 block">Текст в футере (копирайт)</label>
-              <input
-                className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.footerCopyright}
-                onChange={e => setSettings(p => ({ ...p, footerCopyright: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Ссылка на регламент (Google Docs)</label>
-              <input className="w-full bg-background border rounded-lg p-3 text-foreground" placeholder="https://docs.google.com/..." value={settings.rulesLink} onChange={e => setSettings(p => ({ ...p, rulesLink: e.target.value }))} />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Режим регламента</label>
-              <select className="w-full bg-background border rounded-lg p-3 text-foreground" value={settings.rulesMode} onChange={e => setSettings(p => ({ ...p, rulesMode: e.target.value as 'page' | 'link' }))}>
-                <option value="page">Страница на сайте</option>
-                <option value="link">Внешняя ссылка (Google Docs)</option>
-              </select>
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-1 block">Дедлайн регистрации (МСК, формат: ДД-ММ-ГГГГ-ЧЧ:ММ)</label>
-              <input
-                className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.registrationDeadlineAt || ''}
-                onChange={e => setSettings(p => ({ ...p, registrationDeadlineAt: e.target.value }))}
-                placeholder="24-04-2026-12:30"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-1 block">Текст: дедлайн регистрации</label>
-              <input
-                className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.registrationDeadlineText}
-                onChange={e => setSettings(p => ({ ...p, registrationDeadlineText: e.target.value }))}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-1 block">Текст: как подать заявку</label>
-              <textarea
-                className="w-full bg-background border rounded-lg p-3 text-foreground min-h-[88px]"
-                value={settings.registrationHowToText}
-                onChange={e => setSettings(p => ({ ...p, registrationHowToText: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Режим турнира</label>
-              <select
-                className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.tournamentCompleted ? 'completed' : 'active'}
-                onChange={e => setSettings(p => ({ ...p, tournamentCompleted: e.target.value === 'completed' }))}
-              >
-                <option value="active">Активный (расписание готовится)</option>
-                <option value="completed">Завершён</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Режим техработ</label>
-              <select
-                className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.maintenanceEnabled ? 'on' : 'off'}
-                onChange={e => setSettings(p => ({ ...p, maintenanceEnabled: e.target.value === 'on' }))}
-              >
-                <option value="off">Выключен</option>
-                <option value="on">Включен</option>
-              </select>
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-1 block">Заголовок страницы техработ</label>
-              <input
-                className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.maintenanceTitle}
-                onChange={e => setSettings(p => ({ ...p, maintenanceTitle: e.target.value }))}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-1 block">Сообщение на странице техработ</label>
-              <textarea
-                className="w-full bg-background border rounded-lg p-3 text-foreground min-h-[90px]"
-                value={settings.maintenanceMessage}
-                onChange={e => setSettings(p => ({ ...p, maintenanceMessage: e.target.value }))}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-1 block">Плашка: расписание готовится</label>
-              <input
-                className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.schedulePreparingText}
-                onChange={e => setSettings(p => ({ ...p, schedulePreparingText: e.target.value }))}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground mb-1 block">Плашка: турнир завершён</label>
-              <input
-                className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.scheduleCompletedText}
-                onChange={e => setSettings(p => ({ ...p, scheduleCompletedText: e.target.value }))}
-              />
-            </div>
-            <div className="md:col-span-2">
+
+            <div className="rounded-xl border border-border/60 p-4 sm:p-5">
+              <h3 className="font-heading font-bold text-foreground mb-4">Медиа</h3>
               <label className="text-sm text-muted-foreground mb-1 block flex items-center gap-2">
                 <Music size={16} /> Фоновая музыка
               </label>
