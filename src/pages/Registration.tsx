@@ -12,6 +12,12 @@ const Registration: React.FC = () => {
   const { data, updateSettings } = useTournament();
   const settings = data.settings;
   const registrationState = useRegistrationDeadline(settings.registrationDeadlineAt);
+  const hasTournamentStarted = data.matches.some(match => match.status === 'live' || match.status === 'completed');
+  const registrationClosedText = settings.tournamentCompleted
+    ? 'Турнир завершен, регистрация недоступна.'
+    : hasTournamentStarted
+      ? 'Турнир уже идет, регистрация недоступна.'
+      : 'Регистрация завершена. Сейчас идет проверка заявок и подготовка расписания матчей.';
 
   return (
     <PageLayout>
@@ -50,7 +56,7 @@ const Registration: React.FC = () => {
                   <Users size={20} /> Регистрация закрыта
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Регистрация завершена. Сейчас идет проверка заявок и подготовка расписания матчей.
+                  {registrationClosedText}
                 </p>
               </>
             ) : (

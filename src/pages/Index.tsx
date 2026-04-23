@@ -31,6 +31,12 @@ const Index: React.FC = () => {
   const isTeamRegistrationClosed = registrationState.isClosed;
   const isFreePlayersRegistrationClosed = settings.freePlayersRegistrationClosed;
   const showAlertsOnHome = settings.showRegistrationAlertsOnHome;
+  const hasTournamentStarted = data.matches.some(match => match.status === 'live' || match.status === 'completed');
+  const closedRegistrationAlertText = settings.tournamentCompleted
+    ? 'Регистрация команд закрыта. Турнир завершен.'
+    : hasTournamentStarted
+      ? 'Регистрация команд закрыта. Турнир уже идет, новые заявки не принимаются.'
+      : 'Регистрация команд закрыта. Сейчас идет проверка заявок и подготовка расписания.';
   const [notificationDismissed, setNotificationDismissed] = useState(false);
   const scheduledMatches = data.matches
     .filter(match => match.status === 'scheduled')
@@ -123,7 +129,7 @@ const Index: React.FC = () => {
           />
           {registrationState.isClosed && showAlertsOnHome && (
             <div className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm sm:text-base font-heading text-destructive">
-              Регистрация команд закрыта. Сейчас идет проверка заявок и подготовка расписания.
+              {closedRegistrationAlertText}
             </div>
           )}
           {!registrationState.isClosed && registrationState.isClosingSoon && showAlertsOnHome && (

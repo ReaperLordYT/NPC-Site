@@ -14,6 +14,12 @@ const FreePlayers: React.FC = () => {
   const registrationState = useRegistrationDeadline(data.settings.registrationDeadlineAt);
   const isFreePlayerFormClosedByDeadline = registrationState.hasDeadline && registrationState.isClosed;
   const isFreePlayerFormClosed = isFreePlayersRegistrationClosed || isFreePlayerFormClosedByDeadline;
+  const hasTournamentStarted = data.matches.some(match => match.status === 'live' || match.status === 'completed');
+  const freePlayersClosedText = data.settings.tournamentCompleted
+    ? 'Турнир завершен. Подача заявок закрыта.'
+    : hasTournamentStarted
+      ? 'Турнир уже идет. Подача заявок закрыта.'
+      : 'Подача заявок завершена. Сейчас идет проверка заявок и подготовка расписания матчей.';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<Array<'carry' | 'mid' | 'offlane' | 'soft' | 'hard'>>([]);
@@ -230,7 +236,7 @@ const FreePlayers: React.FC = () => {
           )}
           {isFreePlayerFormClosedByDeadline && (
             <p className="text-xs text-muted-foreground mt-3">
-              Подача заявок завершена. Сейчас идет проверка заявок и подготовка расписания матчей.
+              {freePlayersClosedText}
             </p>
           )}
           {!freePlayerFormLink && isAdmin && (
