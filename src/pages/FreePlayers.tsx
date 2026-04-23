@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
+import { useRegistrationDeadline } from '@/hooks/useRegistrationDeadline';
+import { formatRemainingTime } from '@/lib/registrationDeadline';
 import { Plus, Trash2, FileText, ExternalLink, Swords, Sparkles, Shield, HelpingHand, HandHeart, Lock, Search } from 'lucide-react';
 import { BowIcon } from '@/components/icons/BowIcon';
 
@@ -9,6 +11,9 @@ const FreePlayers: React.FC = () => {
   const players = data.settings.freePlayers;
   const freePlayerFormLink = data.settings.freePlayerFormLink?.trim();
   const isFreePlayersRegistrationClosed = data.settings.freePlayersRegistrationClosed;
+  const registrationState = useRegistrationDeadline(data.settings.registrationDeadlineAt);
+  const isFreePlayerFormClosedByDeadline = registrationState.hasDeadline && registrationState.isClosed;
+  const isFreePlayerFormClosed = isFreePlayersRegistrationClosed || isFreePlayerFormClosedByDeadline;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<Array<'carry' | 'mid' | 'offlane' | 'soft' | 'hard'>>([]);
@@ -199,7 +204,16 @@ const FreePlayers: React.FC = () => {
           <p className="text-base sm:text-lg text-muted-foreground">
             У тебя нет команды? Не беда - подай заявку как свободный игрок
           </p>
-          {freePlayerFormLink && !isFreePlayersRegistrationClosed && (
+          {!registrationState.isClosed && registrationState.hasDeadline && (
+            <div className="mt-4 rounded-xl border border-primary/35 bg-primary/10 p-4 text-center">
+              <p className="font-heading text-foreground">До конца подачи заявок свободных игроков:</p>
+              <p className="text-primary font-heading text-lg mt-1">
+                {formatRemainingTime(registrationState.remainingMs)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">Отсчет ведется по МСК.</p>
+            </div>
+          )}
+          {freePlayerFormLink && !isFreePlayerFormClosed && (
             <a
               href={freePlayerFormLink}
               target="_blank"
@@ -209,17 +223,22 @@ const FreePlayers: React.FC = () => {
               <FileText size={18} /> Подать заявку как свободный игрок
             </a>
           )}
-          {isFreePlayersRegistrationClosed && (
+          {isFreePlayerFormClosed && (
             <div className="mt-4 inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-lg border border-border bg-card/50 text-muted-foreground w-full sm:w-auto">
               <Lock size={18} /> Регистрация свободных игроков закрыта
             </div>
+          )}
+          {isFreePlayerFormClosedByDeadline && (
+            <p className="text-xs text-muted-foreground mt-3">
+              Игроки, которые уже были зарегистрированы до дедлайна, участвуют в турнире.
+            </p>
           )}
           {!freePlayerFormLink && isAdmin && (
             <p className="text-xs text-muted-foreground mt-3">
               Добавьте ссылку формы в админке: "Форма для свободных игроков".
             </p>
           )}
-          {!freePlayerFormLink && !isAdmin && !isFreePlayersRegistrationClosed && (
+          {!freePlayerFormLink && !isAdmin && !isFreePlayerFormClosed && (
             <p className="text-xs text-muted-foreground mt-3">
               Форма заявки появится чуть позже.
             </p>
