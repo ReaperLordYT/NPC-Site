@@ -123,7 +123,7 @@ const Index: React.FC = () => {
           />
           {registrationState.isClosed && showAlertsOnHome && (
             <div className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm sm:text-base font-heading text-destructive">
-              Регистрация команд закрыта. Новые заявки больше не принимаются.
+              Регистрация команд закрыта. Сейчас идет проверка заявок и подготовка расписания.
             </div>
           )}
           {!registrationState.isClosed && registrationState.isClosingSoon && showAlertsOnHome && (
@@ -203,6 +203,18 @@ const Index: React.FC = () => {
                 <FileText size={24} /> Регламент
               </Link>
             </div>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Актуальные объявления и изменения в первую очередь публикуются в{' '}
+              <a
+                href={settings.discordLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Discord
+              </a>
+              .
+            </p>
           </div>
           {isAdmin && isEditing && (
             <div className="mt-6 glass-card rounded-xl p-4 text-left max-w-md mx-auto space-y-2">

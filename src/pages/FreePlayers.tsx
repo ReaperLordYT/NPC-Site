@@ -230,7 +230,7 @@ const FreePlayers: React.FC = () => {
           )}
           {isFreePlayerFormClosedByDeadline && (
             <p className="text-xs text-muted-foreground mt-3">
-              Игроки, которые уже были зарегистрированы до дедлайна, участвуют в турнире.
+              Подача заявок завершена. Сейчас идет проверка заявок и подготовка расписания матчей.
             </p>
           )}
           {!freePlayerFormLink && isAdmin && (
