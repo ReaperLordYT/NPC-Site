@@ -47,8 +47,16 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: dist
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
+          # GitHub Pages can stay in `updating_pages` for a long time.
+          # Increase timeout and tolerated transient polling errors.
+          timeout: 1800000
+          error_count: 30
+          reporting_interval: 10000
