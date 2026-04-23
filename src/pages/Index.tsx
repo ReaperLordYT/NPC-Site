@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTournament } from '@/context/TournamentContext';
+import { getRegistrationState } from '@/lib/registrationDeadline';
 import EditableText from '@/components/EditableText';
 import PageLayout from '@/components/PageLayout';
 import { Calendar, Users, Trophy, FileText, ChevronRight, Tv, Plus, Trash2 } from 'lucide-react';
@@ -25,6 +26,7 @@ const heroDiscordCta = `${heroCtaLayout} gap-3 sm:gap-3.5 text-xl sm:text-2xl`;
 const Index: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings, getTeamById } = useTournament();
   const settings = data.settings;
+  const registrationState = getRegistrationState(settings.registrationDeadlineAt);
   const scheduledMatches = data.matches
     .filter(match => match.status === 'scheduled')
     .sort((a, b) => `${a.scheduledDate}${a.scheduledTime}`.localeCompare(`${b.scheduledDate}${b.scheduledTime}`))
@@ -110,6 +112,16 @@ const Index: React.FC = () => {
             as="p"
             className="text-base sm:text-lg md:text-xl text-muted-foreground font-heading mb-8 sm:mb-10 max-w-2xl mx-auto"
           />
+          {registrationState.isClosed && (
+            <div className="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm sm:text-base font-heading text-destructive">
+              Регистрация команд закрыта. Новые заявки больше не принимаются.
+            </div>
+          )}
+          {!registrationState.isClosed && registrationState.isClosingSoon && (
+            <div className="mb-6 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm sm:text-base font-heading text-amber-200">
+              Регистрация команд завершится в течение 24 часов.
+            </div>
+          )}
           <div className="flex w-full flex-col items-center gap-4 sm:gap-5">
             <div className="flex w-full max-w-4xl justify-center">
               <a
@@ -131,14 +143,22 @@ const Index: React.FC = () => {
               ref={heroCtaRowRef}
               className="flex w-full max-w-4xl flex-col flex-wrap justify-center gap-3 sm:flex-row sm:gap-4 sm:items-stretch"
             >
-              <a
-                href={settings.googleFormLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`btn-primary-gradient w-full sm:flex-1 sm:min-w-[200px] justify-center ${heroCtaBox}`}
-              >
-                <Users size={24} /> Регистрация команды
-              </a>
+              {registrationState.isClosed ? (
+                <div
+                  className={`w-full sm:flex-1 sm:min-w-[200px] justify-center rounded-lg border border-border bg-card/50 text-muted-foreground font-heading ${heroCtaBox}`}
+                >
+                  <Users size={24} /> Регистрация закрыта
+                </div>
+              ) : (
+                <a
+                  href={settings.googleFormLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`btn-primary-gradient w-full sm:flex-1 sm:min-w-[200px] justify-center ${heroCtaBox}`}
+                >
+                  <Users size={24} /> Регистрация команды
+                </a>
+              )}
               {settings.freePlayerFormLink?.trim() && (
                 <a
                   href={settings.freePlayerFormLink}

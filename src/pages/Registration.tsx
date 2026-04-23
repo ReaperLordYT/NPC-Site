@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
+import { getRegistrationState } from '@/lib/registrationDeadline';
 import EditableText from '@/components/EditableText';
 import { motion } from 'framer-motion';
 import { FileText, Users } from 'lucide-react';
@@ -9,6 +10,7 @@ import { FileText, Users } from 'lucide-react';
 const Registration: React.FC = () => {
   const { data, updateSettings } = useTournament();
   const settings = data.settings;
+  const registrationState = getRegistrationState(settings.registrationDeadlineAt);
 
   return (
     <PageLayout>
@@ -21,6 +23,16 @@ const Registration: React.FC = () => {
             as="p"
             className="text-center text-muted-foreground mb-10 sm:mb-12 text-base sm:text-lg"
           />
+          {registrationState.isClosed && (
+            <div className="mb-8 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-center font-heading text-destructive">
+              Регистрация команд завершена. Подача новых заявок недоступна.
+            </div>
+          )}
+          {!registrationState.isClosed && registrationState.isClosingSoon && (
+            <div className="mb-8 rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-center font-heading text-amber-200">
+              До окончания регистрации осталось меньше 24 часов.
+            </div>
+          )}
 
           <div className="glass-card rounded-2xl p-5 sm:p-8 mb-8 card-glow">
             <h2 className="font-heading text-xl sm:text-2xl font-bold mb-4 text-foreground flex items-center gap-2">
@@ -32,14 +44,20 @@ const Registration: React.FC = () => {
               as="p"
               className="text-muted-foreground mb-6"
             />
-            <a
-              href={data.settings.googleFormLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary-gradient w-full sm:w-auto justify-center px-6 sm:px-8 py-3 rounded-lg text-base sm:text-lg inline-flex items-center gap-2"
-            >
-              <Users size={20} /> Подать заявку
-            </a>
+            {registrationState.isClosed ? (
+              <div className="w-full sm:w-auto justify-center px-6 sm:px-8 py-3 rounded-lg text-base sm:text-lg inline-flex items-center gap-2 border border-border bg-card/50 text-muted-foreground">
+                <Users size={20} /> Регистрация закрыта
+              </div>
+            ) : (
+              <a
+                href={data.settings.googleFormLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary-gradient w-full sm:w-auto justify-center px-6 sm:px-8 py-3 rounded-lg text-base sm:text-lg inline-flex items-center gap-2"
+              >
+                <Users size={20} /> Подать заявку
+              </a>
+            )}
           </div>
 
           <div className="glass-card rounded-2xl p-5 sm:p-8 card-glow text-center">

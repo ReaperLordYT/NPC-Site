@@ -286,6 +286,15 @@ const Admin: React.FC = () => {
               </select>
             </div>
             <div className="md:col-span-2">
+              <label className="text-sm text-muted-foreground mb-1 block">Дедлайн регистрации (дата и время)</label>
+              <input
+                type="datetime-local"
+                className="w-full bg-background border rounded-lg p-3 text-foreground"
+                value={settings.registrationDeadlineAt || ''}
+                onChange={e => setSettings(p => ({ ...p, registrationDeadlineAt: e.target.value }))}
+              />
+            </div>
+            <div className="md:col-span-2">
               <label className="text-sm text-muted-foreground mb-1 block">Текст: дедлайн регистрации</label>
               <input
                 className="w-full bg-background border rounded-lg p-3 text-foreground"

@@ -104,6 +104,8 @@ export interface SiteSettings {
   discordLink: string;
   googleFormLink: string;
   freePlayerFormLink: string;
+  /** ISO string in local format: YYYY-MM-DDTHH:mm */
+  registrationDeadlineAt: string;
   tournamentName: string;
   tournamentDates: string;
   rulesMode: 'page' | 'link';
