@@ -7,6 +7,21 @@ import { TournamentMatch, Group, BracketConnection } from '@/types/tournament';
 import { formatDate } from '@/lib/dateFormat';
 import { Link as RouterLink } from 'react-router-dom';
 
+const STAGE_LABELS: Record<TournamentMatch['stage'], string> = {
+  group: 'Групповой этап',
+  'playoff-upper': 'Верхняя сетка',
+  'playoff-lower': 'Нижняя сетка',
+  final: 'Финал',
+};
+
+const GROUP_ROUND_TIMES: Record<number, string> = {
+  1: '13:00',
+  2: '14:20',
+  3: '15:40',
+  4: '17:00',
+  5: '18:20',
+};
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface MatchEditState {
   team1Id: string;
@@ -1034,6 +1049,10 @@ const Tournament: React.FC = () => {
   const teamsNotInGroups = data.teams.filter(t => !data.groups.some(g => g.teamIds.includes(t.id)));
   const selectedT1 = selectedMatch ? getTeamById(selectedMatch.team1Id) : null;
   const selectedT2 = selectedMatch ? getTeamById(selectedMatch.team2Id) : null;
+  const selectedGroup = newMatch.stage === 'group' ? data.groups.find(g => g.id === newMatch.groupId) : undefined;
+  const availableTeamsForNewMatch = newMatch.stage === 'group'
+    ? (selectedGroup ? selectedGroup.teamIds.map(id => getTeamById(id)).filter(Boolean) : [])
+    : data.teams;
 
   const NewMatchPanel = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-background/50 rounded-lg border border-border/50 mt-4">
@@ -1041,14 +1060,18 @@ const Tournament: React.FC = () => {
         <label className="text-xs text-muted-foreground block mb-1">Команда 1</label>
         <select className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" value={newMatch.team1Id} onChange={e => setNewMatch(p => ({ ...p, team1Id: e.target.value }))}>
           <option value="">Выберите...</option>
-          {data.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          {availableTeamsForNewMatch
+            .filter(t => t.id !== newMatch.team2Id)
+            .map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
       </div>
       <div>
         <label className="text-xs text-muted-foreground block mb-1">Команда 2</label>
         <select className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" value={newMatch.team2Id} onChange={e => setNewMatch(p => ({ ...p, team2Id: e.target.value }))}>
           <option value="">Выберите...</option>
-          {data.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          {availableTeamsForNewMatch
+            .filter(t => t.id !== newMatch.team1Id)
+            .map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
       </div>
       <div>
@@ -1059,7 +1082,15 @@ const Tournament: React.FC = () => {
       </div>
       <div>
         <label className="text-xs text-muted-foreground block mb-1">Стадия</label>
-        <select className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" value={newMatch.stage} onChange={e => setNewMatch(p => ({ ...p, stage: e.target.value as any }))}>
+        <select
+          className="w-full bg-background border rounded-lg p-2 text-foreground text-sm"
+          value={newMatch.stage}
+          onChange={e => setNewMatch(p => {
+            const stage = e.target.value as TournamentMatch['stage'];
+            if (stage !== 'group') return { ...p, stage, groupId: '', team1Id: '', team2Id: '' };
+            return { ...p, stage, team1Id: '', team2Id: '' };
+          })}
+        >
           <option value="group">Групповой этап</option>
           <option value="playoff-upper">Верхняя сетка</option>
           <option value="playoff-lower">Нижняя сетка</option>
@@ -1069,7 +1100,11 @@ const Tournament: React.FC = () => {
       {newMatch.stage === 'group' && (
         <div>
           <label className="text-xs text-muted-foreground block mb-1">Группа</label>
-          <select className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" value={newMatch.groupId} onChange={e => setNewMatch(p => ({ ...p, groupId: e.target.value }))}>
+          <select
+            className="w-full bg-background border rounded-lg p-2 text-foreground text-sm"
+            value={newMatch.groupId}
+            onChange={e => setNewMatch(p => ({ ...p, groupId: e.target.value, team1Id: '', team2Id: '' }))}
+          >
             <option value="">Выберите группу...</option>
             {data.groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
           </select>
@@ -1087,10 +1122,31 @@ const Tournament: React.FC = () => {
         <label className="text-xs text-muted-foreground block mb-1">Время</label>
         <input type="time" className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" value={newMatch.scheduledTime} onChange={e => setNewMatch(p => ({ ...p, scheduledTime: e.target.value }))} />
       </div>
+      {newMatch.stage === 'group' && (
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">Быстрое время по раунду</label>
+          <button
+            onClick={() => {
+              const quickTime = GROUP_ROUND_TIMES[newMatch.round];
+              if (quickTime) setNewMatch(p => ({ ...p, scheduledTime: quickTime }));
+            }}
+            className="w-full px-3 py-2 border rounded-lg text-xs text-primary hover:bg-primary/10 transition-colors"
+          >
+            Подставить время для R{newMatch.round} {GROUP_ROUND_TIMES[newMatch.round] ? `(${GROUP_ROUND_TIMES[newMatch.round]})` : ''}
+          </button>
+        </div>
+      )}
       <div className="sm:col-span-2 md:col-span-3">
         <label className="text-xs text-muted-foreground block mb-1">Ссылка на трансляцию</label>
         <input className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" placeholder="https://twitch.tv/..." value={newMatch.streamLink} onChange={e => setNewMatch(p => ({ ...p, streamLink: e.target.value }))} />
       </div>
+      {newMatch.stage === 'group' && (
+        <div className="sm:col-span-2 md:col-span-3 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2">
+          {newMatch.groupId
+            ? `Для ${selectedGroup?.name}: доступны только команды этой группы.`
+            : 'Сначала выбери группу, затем команды будут отфильтрованы автоматически.'}
+        </div>
+      )}
       <div className="flex gap-2 flex-wrap sm:col-span-2 md:col-span-3">
         <button onClick={handleCreateMatch} className="btn-primary-gradient px-5 py-2 rounded-lg text-sm font-heading flex items-center gap-1">
           <Check size={14} /> Создать матч {(!newMatch.team1Id || !newMatch.team2Id) ? '(TBD)' : ''}
@@ -1170,8 +1226,21 @@ const Tournament: React.FC = () => {
 
             {data.groups.map(group => {
               const standings = getGroupStandings(group.id);
-              const groupMatches = data.matches.filter(m => m.groupId === group.id);
+              const groupMatches = data.matches
+                .filter(m => m.groupId === group.id)
+                .sort((a, b) => {
+                  const roundDiff = (a.round || 0) - (b.round || 0);
+                  if (roundDiff !== 0) return roundDiff;
+                  return (a.scheduledTime || '').localeCompare(b.scheduledTime || '');
+                });
               const formula = group.pointsFormula || 'W×3 + D×1 + L×0';
+              const groupMatchesByRound = groupMatches.reduce<Record<number, TournamentMatch[]>>((acc, match) => {
+                const round = match.round || 1;
+                if (!acc[round]) acc[round] = [];
+                acc[round].push(match);
+                return acc;
+              }, {});
+              const rounds = Object.keys(groupMatchesByRound).map(Number).sort((a, b) => a - b);
               return (
                 <motion.div key={group.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-2xl p-6">
                   <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -1268,7 +1337,23 @@ const Tournament: React.FC = () => {
                   {groupMatches.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-heading font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-3">Матчи группы</h4>
-                      {groupMatches.map(match => <MatchCard key={match.id} match={match} onOpenDetails={setSelectedMatch} />)}
+                      <div className="space-y-4">
+                        {rounds.map(round => (
+                          <div key={round} className="rounded-xl border border-border/40 bg-background/30 p-3 sm:p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h5 className="font-heading font-semibold text-sm text-foreground">Раунд {round}</h5>
+                              <span className="text-xs text-muted-foreground">
+                                {groupMatchesByRound[round][0]?.scheduledTime ? `Старт: ${groupMatchesByRound[round][0].scheduledTime}` : 'Время не указано'}
+                              </span>
+                            </div>
+                            <div className="space-y-2">
+                              {groupMatchesByRound[round].map(match => (
+                                <MatchCard key={match.id} match={match} onOpenDetails={setSelectedMatch} />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </motion.div>
@@ -1342,18 +1427,41 @@ const Tournament: React.FC = () => {
                 <h3 className="font-heading text-xl font-bold text-foreground">Подробности матча</h3>
                 <button className="text-muted-foreground hover:text-foreground" onClick={() => setSelectedMatch(null)}>✕</button>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mb-4">
-                <span>{selectedMatch.stage}</span>
-                <span>{selectedMatch.format}</span>
-                {selectedMatch.round && <span>Раунд {selectedMatch.round}</span>}
-                {selectedMatch.scheduledDate && <span>{formatDate(selectedMatch.scheduledDate)}</span>}
-                {selectedMatch.scheduledTime && <span>{selectedMatch.scheduledTime}</span>}
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className="px-2 py-1 rounded-md text-xs font-heading bg-primary/10 text-primary">{STAGE_LABELS[selectedMatch.stage]}</span>
+                <span className="px-2 py-1 rounded-md text-xs font-heading bg-muted/60 text-foreground">{selectedMatch.format}</span>
+                {selectedMatch.round && <span className="px-2 py-1 rounded-md text-xs font-heading bg-muted/60 text-foreground">Раунд {selectedMatch.round}</span>}
               </div>
-              {selectedMatch.result && (
-                <div className="text-2xl font-display font-bold text-foreground mb-4">
-                  {selectedMatch.result.team1Score} : {selectedMatch.result.team2Score}
+              <div className="rounded-xl border border-border/40 bg-background/40 p-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3">
+                  <div className="text-center sm:text-left">
+                    <p className="text-sm text-muted-foreground">Команда 1</p>
+                    <p className="font-heading font-semibold text-foreground">{selectedT1?.name || 'TBD'}</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-display font-bold text-foreground">
+                      {selectedMatch.result ? `${selectedMatch.result.team1Score} : ${selectedMatch.result.team2Score}` : '— : —'}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {selectedMatch.status === 'completed' ? 'Матч завершён' : selectedMatch.status === 'live' ? 'Идёт матч' : 'Ожидается'}
+                    </div>
+                  </div>
+                  <div className="text-center sm:text-right">
+                    <p className="text-sm text-muted-foreground">Команда 2</p>
+                    <p className="font-heading font-semibold text-foreground">{selectedT2?.name || 'TBD'}</p>
+                  </div>
                 </div>
-              )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mb-4">
+                <div className="rounded-lg bg-muted/30 px-3 py-2">
+                  <p className="text-xs text-muted-foreground">Дата</p>
+                  <p className="text-foreground">{selectedMatch.scheduledDate ? formatDate(selectedMatch.scheduledDate) : 'Не указана'}</p>
+                </div>
+                <div className="rounded-lg bg-muted/30 px-3 py-2">
+                  <p className="text-xs text-muted-foreground">Время</p>
+                  <p className="text-foreground">{selectedMatch.scheduledTime || 'Не указано'}</p>
+                </div>
+              </div>
               <div className="flex gap-3 flex-wrap">
                 {selectedT1 && (
                   <RouterLink to={`/teams/${selectedT1.id}`} className="px-3 py-2 border rounded-lg text-sm hover:text-primary" onClick={() => setSelectedMatch(null)}>
