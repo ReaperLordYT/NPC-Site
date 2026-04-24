@@ -38,6 +38,31 @@ const stageLabels: Record<string, string> = {
   final: 'Финал',
 };
 
+const STAGE_SORT_ORDER: Record<TournamentMatch['stage'], number> = {
+  group: 1,
+  'playoff-upper': 2,
+  'playoff-lower': 3,
+  final: 4,
+};
+
+const STATUS_SORT_ORDER: Record<TournamentMatch['status'], number> = {
+  live: 1,
+  scheduled: 2,
+  completed: 3,
+  cancelled: 4,
+};
+
+function compareDateTimeAsc(a: TournamentMatch, b: TournamentMatch): number {
+  const dateA = a.scheduledDate || '9999-12-31';
+  const dateB = b.scheduledDate || '9999-12-31';
+  const dateCmp = dateA.localeCompare(dateB, undefined, { numeric: true });
+  if (dateCmp !== 0) return dateCmp;
+
+  const timeA = a.scheduledTime || '99:99';
+  const timeB = b.scheduledTime || '99:99';
+  return timeA.localeCompare(timeB, undefined, { numeric: true });
+}
+
 const StatusBadge: React.FC<{ status: TournamentMatch['status'] }> = ({ status }) => {
   if (status === 'live')
     return <span className="px-2 py-0.5 rounded-md text-xs font-heading whitespace-nowrap bg-red-500/20 text-red-400 animate-pulse">🔴 LIVE</span>;
@@ -93,15 +118,44 @@ const Schedule: React.FC = () => {
     }
     if (sortCol) {
       list.sort((a, b) => {
-        let va = '', vb = '';
-        if (sortCol === 'date')   { va = a.scheduledDate || ''; vb = b.scheduledDate || ''; }
-        if (sortCol === 'time')   { va = a.scheduledTime || ''; vb = b.scheduledTime || ''; }
-        if (sortCol === 'stage')  { va = a.stage; vb = b.stage; }
-        if (sortCol === 'format') { va = a.format; vb = b.format; }
-        if (sortCol === 'status') { va = a.status; vb = b.status; }
-        if (sortCol === 'match')  { va = getTeamById(a.team1Id)?.name || ''; vb = getTeamById(b.team1Id)?.name || ''; }
-        if (sortCol === 'result') { va = a.result ? `${a.result.team1Score}` : ''; vb = b.result ? `${b.result.team1Score}` : ''; }
-        const cmp = va.localeCompare(vb, undefined, { numeric: true });
+        let cmp = 0;
+
+        if (sortCol === 'date') {
+          // Default behavior: chronological sort by date, then by time.
+          cmp = compareDateTimeAsc(a, b);
+        }
+        if (sortCol === 'time') {
+          const timeA = a.scheduledTime || '99:99';
+          const timeB = b.scheduledTime || '99:99';
+          cmp = timeA.localeCompare(timeB, undefined, { numeric: true });
+          if (cmp === 0) cmp = (a.scheduledDate || '9999-12-31').localeCompare(b.scheduledDate || '9999-12-31', undefined, { numeric: true });
+        }
+        if (sortCol === 'stage') {
+          // Stage groups stay logical, while matches inside each stage remain chronological.
+          cmp = (STAGE_SORT_ORDER[a.stage] ?? 999) - (STAGE_SORT_ORDER[b.stage] ?? 999);
+          if (cmp === 0) cmp = compareDateTimeAsc(a, b);
+        }
+        if (sortCol === 'format') {
+          cmp = a.format.localeCompare(b.format, undefined, { numeric: true });
+          if (cmp === 0) cmp = compareDateTimeAsc(a, b);
+        }
+        if (sortCol === 'status') {
+          cmp = (STATUS_SORT_ORDER[a.status] ?? 999) - (STATUS_SORT_ORDER[b.status] ?? 999);
+          if (cmp === 0) cmp = compareDateTimeAsc(a, b);
+        }
+        if (sortCol === 'match') {
+          const va = getTeamById(a.team1Id)?.name || '';
+          const vb = getTeamById(b.team1Id)?.name || '';
+          cmp = va.localeCompare(vb, undefined, { numeric: true });
+          if (cmp === 0) cmp = compareDateTimeAsc(a, b);
+        }
+        if (sortCol === 'result') {
+          const va = a.result ? `${a.result.team1Score}:${a.result.team2Score}` : '-1:-1';
+          const vb = b.result ? `${b.result.team1Score}:${b.result.team2Score}` : '-1:-1';
+          cmp = va.localeCompare(vb, undefined, { numeric: true });
+          if (cmp === 0) cmp = compareDateTimeAsc(a, b);
+        }
+
         return sortDir === 'asc' ? cmp : -cmp;
       });
     }

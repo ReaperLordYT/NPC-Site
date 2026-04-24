@@ -8,7 +8,7 @@ import TeamEditor from '@/components/TeamEditor';
 import { formatDate } from '@/lib/dateFormat';
 
 const stageLabels: Record<string, string> = {
-  group: 'Групповой',
+  group: 'Групповой этап',
   'playoff-upper': 'Верхняя сетка',
   'playoff-lower': 'Нижняя сетка',
   final: 'Финал',
@@ -57,7 +57,16 @@ const TeamDetail: React.FC = () => {
       return a.originalIndex - b.originalIndex;
     })
     .map(entry => entry.player);
-  const teamMatches = data.matches.filter(m => m.team1Id === team.id || m.team2Id === team.id);
+  const teamMatches = data.matches
+    .filter(m => m.team1Id === team.id || m.team2Id === team.id)
+    .sort((a, b) => {
+      const dateA = a.scheduledDate || '9999-12-31';
+      const dateB = b.scheduledDate || '9999-12-31';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      const timeA = a.scheduledTime || '99:99';
+      const timeB = b.scheduledTime || '99:99';
+      return timeA.localeCompare(timeB);
+    });
   const completed = teamMatches.filter(m => m.status === 'completed' && m.result);
   const activePlayers = sortedPlayers.filter(player => activePlayerIds.includes(player.id));
   const activeMmr = activePlayers.reduce((sum, player) => sum + (player.mmr || 0), 0);
@@ -323,6 +332,7 @@ const TeamDetail: React.FC = () => {
                 {teamMatches.map(match => {
                   const oppId = match.team1Id === team.id ? match.team2Id : match.team1Id;
                   const opp = data.teams.find(t => t.id === oppId);
+                  const groupName = match.groupId ? data.groups.find(g => g.id === match.groupId)?.name : null;
                   const isTeam1 = match.team1Id === team.id;
                   const myScore = match.result ? (isTeam1 ? match.result.team1Score : match.result.team2Score) : null;
                   const theirScore = match.result ? (isTeam1 ? match.result.team2Score : match.result.team1Score) : null;
@@ -381,6 +391,9 @@ const TeamDetail: React.FC = () => {
                       <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                         <span className="px-2 py-0.5 rounded bg-primary/10 text-primary font-heading">{match.format}</span>
                         <span className="px-2 py-0.5 rounded bg-muted font-heading">{stageLabels[match.stage] || match.stage}</span>
+                        {groupName && (
+                          <span className="px-2 py-0.5 rounded bg-muted/70 font-heading">Группа: {groupName}</span>
+                        )}
                         {match.scheduledDate && (
                           <span className="flex items-center gap-1">
                             <Calendar size={11} /> {formatDate(match.scheduledDate)}
@@ -411,17 +424,52 @@ const TeamDetail: React.FC = () => {
                   <h3 className="font-heading text-xl font-bold text-foreground">Подробности матча</h3>
                   <button className="text-muted-foreground hover:text-foreground" onClick={() => setSelectedMatchId(null)}>✕</button>
                 </div>
-                <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mb-4">
-                  <span>{stageLabels[selectedMatch.stage] || selectedMatch.stage}</span>
-                  <span>{selectedMatch.format}</span>
-                  {selectedMatch.scheduledDate && <span>{formatDate(selectedMatch.scheduledDate)}</span>}
-                  {selectedMatch.scheduledTime && <span>{selectedMatch.scheduledTime}</span>}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="px-2 py-1 rounded-md text-xs font-heading bg-primary/10 text-primary">{stageLabels[selectedMatch.stage] || selectedMatch.stage}</span>
+                  <span className="px-2 py-1 rounded-md text-xs font-heading bg-muted/60 text-foreground">{selectedMatch.format}</span>
+                  {selectedMatch.round && <span className="px-2 py-1 rounded-md text-xs font-heading bg-muted/60 text-foreground">Раунд {selectedMatch.round}</span>}
+                  {selectedMatch.groupId && (
+                    <span className="px-2 py-1 rounded-md text-xs font-heading bg-muted/60 text-foreground">
+                      Группа: {data.groups.find(g => g.id === selectedMatch.groupId)?.name || selectedMatch.groupId}
+                    </span>
+                  )}
                 </div>
-                {selectedMatch.result && (
-                  <div className="text-2xl font-display font-bold text-foreground mb-4">
-                    {selectedMatch.result.team1Score} : {selectedMatch.result.team2Score}
+                <div className="rounded-xl border border-border/40 bg-background/40 p-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3">
+                    <div className="text-center sm:text-left">
+                      <p className="text-sm text-muted-foreground">Команда 1</p>
+                      <p className="font-heading font-semibold text-foreground">
+                        {data.teams.find(t => t.id === selectedMatch.team1Id)?.name || 'TBD'}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-display font-bold text-foreground">
+                        {selectedMatch.result
+                          ? `${selectedMatch.result.team1Score} : ${selectedMatch.result.team2Score}`
+                          : '— : —'}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {selectedMatch.status === 'completed' ? 'Матч завершён' : selectedMatch.status === 'live' ? 'Идёт матч' : 'Ожидается'}
+                      </div>
+                    </div>
+                    <div className="text-center sm:text-right">
+                      <p className="text-sm text-muted-foreground">Команда 2</p>
+                      <p className="font-heading font-semibold text-foreground">
+                        {data.teams.find(t => t.id === selectedMatch.team2Id)?.name || 'TBD'}
+                      </p>
+                    </div>
                   </div>
-                )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mb-4">
+                  <div className="rounded-lg bg-muted/30 px-3 py-2">
+                    <p className="text-xs text-muted-foreground">Дата</p>
+                    <p className="text-foreground">{selectedMatch.scheduledDate ? formatDate(selectedMatch.scheduledDate) : 'Не указана'}</p>
+                  </div>
+                  <div className="rounded-lg bg-muted/30 px-3 py-2">
+                    <p className="text-xs text-muted-foreground">Время</p>
+                    <p className="text-foreground">{selectedMatch.scheduledTime || 'Не указано'}</p>
+                  </div>
+                </div>
                 <div className="flex gap-3 flex-wrap">
                   <Link to={`/teams/${team.id}`} className="px-3 py-2 border rounded-lg text-sm hover:text-primary">
                     {team.name}
