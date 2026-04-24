@@ -1060,11 +1060,21 @@ const Tournament: React.FC = () => {
       <div>
         <label className="text-xs text-muted-foreground block mb-1">Стадия</label>
         <select className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" value={newMatch.stage} onChange={e => setNewMatch(p => ({ ...p, stage: e.target.value as any }))}>
+          <option value="group">Групповой этап</option>
           <option value="playoff-upper">Верхняя сетка</option>
           <option value="playoff-lower">Нижняя сетка</option>
           <option value="final">Финал</option>
         </select>
       </div>
+      {newMatch.stage === 'group' && (
+        <div>
+          <label className="text-xs text-muted-foreground block mb-1">Группа</label>
+          <select className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" value={newMatch.groupId} onChange={e => setNewMatch(p => ({ ...p, groupId: e.target.value }))}>
+            <option value="">Выберите группу...</option>
+            {data.groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+          </select>
+        </div>
+      )}
       <div>
         <label className="text-xs text-muted-foreground block mb-1">Раунд</label>
         <input type="number" min={1} className="w-full bg-background border rounded-lg p-2 text-foreground text-sm" value={newMatch.round} onChange={e => setNewMatch(p => ({ ...p, round: parseInt(e.target.value) || 1 }))} />
