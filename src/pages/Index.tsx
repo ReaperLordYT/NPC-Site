@@ -31,11 +31,13 @@ const Index: React.FC = () => {
   const isTeamRegistrationClosed = registrationState.isClosed;
   const isFreePlayersRegistrationClosed = settings.freePlayersRegistrationClosed;
   const showAlertsOnHome = settings.showRegistrationAlertsOnHome;
-  const hasTournamentStarted = data.matches.some(match => match.status === 'live' || match.status === 'completed');
+  const hasPublishedSchedule = data.matches.some(
+    match => match.status === 'scheduled' || match.status === 'live' || match.status === 'completed'
+  );
   const closedRegistrationAlertText = settings.tournamentCompleted
     ? 'Регистрация команд закрыта. Турнир завершен.'
-    : hasTournamentStarted
-      ? 'Регистрация команд закрыта. Турнир уже идет, новые заявки не принимаются.'
+    : hasPublishedSchedule
+      ? 'Регистрация команд закрыта. Расписание матчей уже опубликовано.'
       : 'Регистрация команд закрыта. Сейчас идет проверка заявок и подготовка расписания.';
   const [notificationDismissed, setNotificationDismissed] = useState(false);
   const scheduledMatches = data.matches

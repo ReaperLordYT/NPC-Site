@@ -12,11 +12,13 @@ const Registration: React.FC = () => {
   const { data, updateSettings } = useTournament();
   const settings = data.settings;
   const registrationState = useRegistrationDeadline(settings.registrationDeadlineAt);
-  const hasTournamentStarted = data.matches.some(match => match.status === 'live' || match.status === 'completed');
+  const hasPublishedSchedule = data.matches.some(
+    match => match.status === 'scheduled' || match.status === 'live' || match.status === 'completed'
+  );
   const registrationClosedText = settings.tournamentCompleted
     ? 'Турнир завершен, регистрация недоступна.'
-    : hasTournamentStarted
-      ? 'Турнир уже идет, регистрация недоступна.'
+    : hasPublishedSchedule
+      ? 'Регистрация завершена. Расписание матчей уже опубликовано.'
       : 'Регистрация завершена. Сейчас идет проверка заявок и подготовка расписания матчей.';
 
   return (

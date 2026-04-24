@@ -249,7 +249,7 @@ interface TournamentContextType {
   deleteGroup: (id: string) => void;
   generateGroupMatches: (groupId: string) => void;
   getTeamById: (id: string) => Team | undefined;
-  getGroupStandings: (groupId: string) => { teamId: string; wins: number; losses: number; draws: number; points: number }[];
+  getGroupStandings: (groupId: string) => { teamId: string; wins: number; losses: number; points: number }[];
   refreshData: () => Promise<void>;
   withdrawTeam: (id: string, reason?: string) => void;
   backups: BackupSnapshot[];
@@ -405,7 +405,7 @@ const loadFromSupabase = useCallback(async () => {
         newMatches.push({
           id: `group-${groupId}-${teams[i]}-${teams[j]}`,
           team1Id: teams[i], team2Id: teams[j],
-          stage: 'group', format: 'Bo2', groupId,
+          stage: 'group', format: 'Bo1', groupId,
           scheduledDate: '', scheduledTime: '',
           status: 'scheduled', round: 1,
         });
@@ -416,42 +416,25 @@ const loadFromSupabase = useCallback(async () => {
 
   const getTeamById = useCallback((id: string) => data.teams.find(t => t.id === id), [data.teams]);
 
-  const calcPoints = (wins: number, draws: number, losses: number, formula?: string): number => {
-    if (!formula || !formula.trim()) return wins * 3 + draws;
-    try {
-      // Safe formula evaluation: only allow W, D, L, digits, *, +, -, (, ), spaces
-      const clean = formula.replace(/[^WDLwdl0-9+\-*\/() ]/g, '');
-      const expr = clean
-        .replace(/W/gi, String(wins))
-        .replace(/D/gi, String(draws))
-        .replace(/L/gi, String(losses));
-      // eslint-disable-next-line no-new-func
-      const result = Function('"use strict"; return (' + expr + ')')();
-      return typeof result === 'number' && isFinite(result) ? result : 0;
-    } catch { return wins * 3 + draws; }
-  };
-
   const getGroupStandings = useCallback((groupId: string) => {
     const group = data.groups.find(g => g.id === groupId);
     if (!group) return [];
     const matches = data.matches.filter(m =>
       m.groupId === groupId && m.status === 'completed' && m.result);
     const standings = group.teamIds.map(teamId => {
-      let wins = 0, losses = 0, draws = 0;
+      let wins = 0, losses = 0;
       matches.forEach(m => {
         if (!m.result) return;
         if (m.team1Id === teamId) {
           if (m.result.team1Score > m.result.team2Score) wins++;
           else if (m.result.team1Score < m.result.team2Score) losses++;
-          else draws++;
         } else if (m.team2Id === teamId) {
           if (m.result.team2Score > m.result.team1Score) wins++;
           else if (m.result.team2Score < m.result.team1Score) losses++;
-          else draws++;
         }
       });
-      const points = calcPoints(wins, draws, losses, group.pointsFormula);
-      return { teamId, wins, losses, draws, points };
+      const points = wins;
+      return { teamId, wins, losses, points };
     });
     return standings.sort((a, b) => b.points - a.points);
   }, [data.groups, data.matches]);

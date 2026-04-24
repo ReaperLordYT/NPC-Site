@@ -977,8 +977,6 @@ const Tournament: React.FC = () => {
   const [newGroupName, setNewGroupName] = useState('');
   const [selectedGroupForTeam, setSelectedGroupForTeam] = useState('');
   const [selectedTeamForGroup, setSelectedTeamForGroup] = useState('');
-  const [editingFormulaId, setEditingFormulaId] = useState<string | null>(null);
-  const [formulaDraft, setFormulaDraft] = useState('');
   const [showNewMatch, setShowNewMatch] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<TournamentMatch | null>(null);
   const [newMatch, setNewMatch] = useState({
@@ -1010,11 +1008,6 @@ const Tournament: React.FC = () => {
     const group = data.groups.find(g => g.id === groupId);
     if (!group) return;
     updateGroup({ ...group, teamIds: group.teamIds.filter(id => id !== teamId) });
-  };
-
-  const handleSaveFormula = (group: Group) => {
-    updateGroup({ ...group, pointsFormula: formulaDraft.trim() || undefined });
-    setEditingFormulaId(null);
   };
 
   const handleCreateMatch = () => {
@@ -1233,7 +1226,6 @@ const Tournament: React.FC = () => {
                   if (roundDiff !== 0) return roundDiff;
                   return (a.scheduledTime || '').localeCompare(b.scheduledTime || '');
                 });
-              const formula = group.pointsFormula || 'W×3 + D×1 + L×0';
               const groupMatchesByRound = groupMatches.reduce<Record<number, TournamentMatch[]>>((acc, match) => {
                 const round = match.round || 1;
                 if (!acc[round]) acc[round] = [];
@@ -1246,21 +1238,6 @@ const Tournament: React.FC = () => {
                   <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                     <div>
                       <h2 className="font-heading text-2xl font-bold text-foreground">{group.name}</h2>
-                      {editingFormulaId === group.id ? (
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-xs text-muted-foreground font-heading">Формула:</span>
-                          <input className="bg-background border rounded px-2 py-0.5 text-foreground text-xs font-mono w-40" placeholder="W*3+D*1+L*0" value={formulaDraft} onChange={e => setFormulaDraft(e.target.value)} />
-                          <button onClick={() => handleSaveFormula(group)} className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded font-heading">✓</button>
-                          <button onClick={() => setEditingFormulaId(null)} className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded">✕</button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-muted-foreground font-mono">📊 {formula}</span>
-                          {isAdmin && isEditing && (
-                            <button onClick={() => { setEditingFormulaId(group.id); setFormulaDraft(group.pointsFormula || ''); }} className="text-xs text-primary hover:underline font-heading">изменить</button>
-                          )}
-                        </div>
-                      )}
                     </div>
                     {isAdmin && isEditing && (
                       <div className="flex gap-2">
@@ -1282,7 +1259,6 @@ const Tournament: React.FC = () => {
                             <th className="text-left py-2 px-3 font-heading text-xs">#</th>
                             <th className="text-left py-2 px-3 font-heading text-xs">Команда</th>
                             <th className="text-center py-2 px-3 font-heading text-xs">В</th>
-                            <th className="text-center py-2 px-3 font-heading text-xs">Н</th>
                             <th className="text-center py-2 px-3 font-heading text-xs">П</th>
                             <th className="text-center py-2 px-3 font-heading text-xs">Очки</th>
                           </tr>
@@ -1303,7 +1279,6 @@ const Tournament: React.FC = () => {
                                   </div>
                                 </td>
                                 <td className="text-center py-3 px-3 text-green-400 font-heading font-semibold">{s.wins}</td>
-                                <td className="text-center py-3 px-3 text-yellow-400 font-heading font-semibold">{s.draws}</td>
                                 <td className="text-center py-3 px-3 text-red-400 font-heading font-semibold">{s.losses}</td>
                                 <td className="text-center py-3 px-3 font-heading font-bold text-foreground text-base">{s.points}</td>
                               </tr>
