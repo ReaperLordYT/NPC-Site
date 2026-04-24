@@ -180,9 +180,9 @@ const MVP: React.FC = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
           <Star className="mx-auto mb-4 text-primary" size={56} />
           <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text mb-4">MVP Турнира</h1>
-          <EditableText value={settings.mvpText} onSave={val => updateSettings({ mvpText: val })} as="p" className="text-muted-foreground max-w-2xl mx-auto mb-3" multiline />
+          <EditableText value={settings.mvpText} onSave={val => updateSettings({ mvpText: val })} as="p" className="text-muted-foreground whitespace-pre-line max-w-2xl mx-auto mb-3" multiline />
           <EditableText value={settings.mvpPrize} onSave={val => updateSettings({ mvpPrize: val })} as="p" className="text-foreground font-heading font-semibold mb-8" />
-          <div className="inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-heading font-semibold bg-card/40">
+          <div className="inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-heading font-semibold bg-card/40 mb-4">
             {stage === 'announce' && 'Стадия 1: Анонс голосования'}
             {stage === 'voting' && 'Стадия 2: ГОЛОСОВАНИЕ ИДЁТ'}
             {stage === 'finished' && 'Стадия 3: Голосование завершено'}
@@ -221,7 +221,7 @@ const MVP: React.FC = () => {
               <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
                 <Star className="text-muted-foreground" size={48} />
               </div>
-              <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Голосование скоро начнётся</h2>
+              <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Голосование ещё не началось</h2>
               <p className="text-muted-foreground max-w-md mx-auto">
                 Голосование за MVP будет проходить в Discord среди игроков всех участвующих команд.
               </p>
