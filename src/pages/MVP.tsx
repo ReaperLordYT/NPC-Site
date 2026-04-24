@@ -1,30 +1,66 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
 import EditableText from '@/components/EditableText';
 import { motion } from 'framer-motion';
 import { Star, Upload, Volume2, VolumeX, Volume1, Music, Trophy, Trash2, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import type { Player, Team } from '@/types/tournament';
+
+const SESSION_MVP_PAUSED_KEY = 'npc-mvp-music-paused';
+type MvpStage = 'announce' | 'voting' | 'finished';
 
 const MVP: React.FC = () => {
   const { data, isAdmin, isEditing, updateSettings } = useTournament();
   const settings = data.settings;
 
-  const mvpPlayer = settings.mvpPlayerId ? (() => {
+  const winnerId = settings.mvpWinnerPlayerId || settings.mvpPlayerId;
+  const mvpPlayer = winnerId ? (() => {
     for (const team of data.teams) {
-      const p = team.players.find(pl => pl.id === settings.mvpPlayerId);
+      const p = team.players.find(pl => pl.id === winnerId);
       if (p) return { player: p, team };
     }
     return null;
   })() : null;
 
+  const stage: MvpStage = settings.mvpStage || 'announce';
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying]         = useState(false);
   const [volume, setVolume]           = useState(0.5);
   const [muted, setMuted]             = useState(false);
+  const [sessionPaused, setSessionPaused] = useState<boolean>(() => sessionStorage.getItem(SESSION_MVP_PAUSED_KEY) === 'true');
   const mvpMusicFileRef               = useRef<HTMLInputElement>(null);
   const [uploading, setUploading]     = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadDone, setUploadDone]   = useState(false);
+
+  const stageMusicUrl = useMemo(() => {
+    if (stage === 'announce') return settings.mvpAnnounceMusicUrl || '';
+    if (stage === 'voting') return settings.mvpVotingMusicUrl || '';
+    return settings.mvpFinishedMusicUrl || '';
+  }, [settings.mvpAnnounceMusicUrl, settings.mvpVotingMusicUrl, settings.mvpFinishedMusicUrl, stage]);
+
+  const stageCandidates = useMemo(() => {
+    const byId = new Map<string, { player: Player; team: Team }>();
+    for (const team of data.teams) {
+      for (const player of team.players) {
+        byId.set(player.id, { player, team });
+      }
+    }
+    const ids = settings.mvpCandidatePlayerIds || [];
+    return ids
+      .map((id) => {
+        const found = byId.get(id);
+        if (!found) return null;
+        return {
+          id,
+          nickname: found.player.nickname,
+          teamName: found.team.name,
+          isSubstitute: found.player.isSubstitute,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item))
+      .filter((item) => item.nickname.trim().length > 0);
+  }, [data.teams, settings.mvpCandidatePlayerIds]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = muted ? 0 : volume;
@@ -44,27 +80,36 @@ const MVP: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Reload MVP audio src whenever mvpMusicUrl changes (upload or initial load)
+  // Reload stage audio src when stage or music changes
   useEffect(() => {
     if (!audioRef.current) return;
-    const url = settings.mvpMusicUrl || '';
+    const url = stageMusicUrl || '';
     if (audioRef.current.src !== url) {
       audioRef.current.src = url;
       audioRef.current.load();
     }
-    if (url) {
+    if (url && !sessionPaused) {
       audioRef.current.play().catch(() => {});
       setPlaying(true);
     } else {
       audioRef.current.pause();
       setPlaying(false);
     }
-  }, [settings.mvpMusicUrl]);
+  }, [stageMusicUrl, sessionPaused]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
-    if (playing) { audioRef.current.pause(); setPlaying(false); }
-    else { audioRef.current.play().catch(() => {}); setPlaying(true); }
+    if (playing) {
+      audioRef.current.pause();
+      setPlaying(false);
+      setSessionPaused(true);
+      sessionStorage.setItem(SESSION_MVP_PAUSED_KEY, 'true');
+    } else {
+      audioRef.current.play().catch(() => {});
+      setPlaying(true);
+      setSessionPaused(false);
+      sessionStorage.removeItem(SESSION_MVP_PAUSED_KEY);
+    }
   };
 
   const handleMvpMusicUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,14 +132,22 @@ const MVP: React.FC = () => {
         reader.onerror = () => reject(new Error('Ошибка чтения файла'));
         reader.readAsDataURL(file);
       });
-      updateSettings({ mvpMusicUrl: url });
+      const key =
+        stage === 'announce'
+          ? 'mvpAnnounceMusicUrl'
+          : stage === 'voting'
+          ? 'mvpVotingMusicUrl'
+          : 'mvpFinishedMusicUrl';
+      updateSettings({ [key]: url } as Partial<typeof settings>);
       setUploadDone(true);
 
       if (audioRef.current) {
         audioRef.current.src = url;
         audioRef.current.load();
-        audioRef.current.play().catch(() => {});
-        setPlaying(true);
+        if (!sessionPaused) {
+          audioRef.current.play().catch(() => {});
+          setPlaying(true);
+        }
       }
     } catch (err: unknown) {
       setUploadError(err instanceof Error ? err.message : 'Неизвестная ошибка загрузки');
@@ -105,14 +158,16 @@ const MVP: React.FC = () => {
   };
 
   const handleDeleteMusic = () => {
-    updateSettings({ mvpMusicUrl: '' });
+    if (stage === 'announce') updateSettings({ mvpAnnounceMusicUrl: '' });
+    if (stage === 'voting') updateSettings({ mvpVotingMusicUrl: '' });
+    if (stage === 'finished') updateSettings({ mvpFinishedMusicUrl: '' });
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
     setPlaying(false);
     setUploadDone(false);
     setUploadError(null);
   };
 
-  const hasMusic = !!settings.mvpMusicUrl;
+  const hasMusic = !!stageMusicUrl;
   const VolumeIcon = muted ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   return (
@@ -125,8 +180,13 @@ const MVP: React.FC = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
           <Star className="mx-auto mb-4 text-primary" size={56} />
           <h1 className="font-display text-3xl md:text-5xl font-bold gradient-text mb-4">MVP Турнира</h1>
-          <EditableText value={settings.mvpText} onSave={val => updateSettings({ mvpText: val })} as="p" className="text-muted-foreground max-w-2xl mx-auto mb-4" multiline />
+          <EditableText value={settings.mvpText} onSave={val => updateSettings({ mvpText: val })} as="p" className="text-muted-foreground max-w-2xl mx-auto mb-3" multiline />
           <EditableText value={settings.mvpPrize} onSave={val => updateSettings({ mvpPrize: val })} as="p" className="text-foreground font-heading font-semibold mb-8" />
+          <div className="inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-heading font-semibold bg-card/40">
+            {stage === 'announce' && 'Стадия 1: Анонс голосования'}
+            {stage === 'voting' && 'Стадия 2: ГОЛОСОВАНИЕ ИДЁТ'}
+            {stage === 'finished' && 'Стадия 3: Голосование завершено'}
+          </div>
         </motion.div>
 
         {hasMusic && (
@@ -156,7 +216,50 @@ const MVP: React.FC = () => {
           transition={{ delay: 0.2 }}
           className="glass-card rounded-2xl p-5 sm:p-8 md:p-12 card-glow text-center"
         >
-          {mvpPlayer ? (
+          {stage === 'announce' && (
+            <>
+              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+                <Star className="text-muted-foreground" size={48} />
+              </div>
+              <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Голосование скоро начнётся</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Голосование за MVP будет проходить в Discord среди игроков всех участвующих команд.
+              </p>
+              <a
+                href={data.settings.discordLink}
+                target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 btn-primary-gradient px-6 py-2 rounded-lg mt-6"
+              >
+                Перейти в Discord
+              </a>
+            </>
+          )}
+
+          {stage === 'voting' && (
+            <>
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/70 to-primary/30 flex items-center justify-center mx-auto mb-6">
+                <Star className="text-primary-foreground" size={48} />
+              </div>
+              <h2 className="font-heading text-2xl font-bold text-foreground mb-4">ГОЛОСОВАНИЕ ИДЁТ</h2>
+              {stageCandidates.length > 0 ? (
+                <div className="max-w-lg mx-auto space-y-2 text-left">
+                  {stageCandidates.map((candidate) => (
+                    <div key={candidate.id} className="rounded-lg border border-border/70 bg-background/40 px-4 py-2.5">
+                      <p className="font-heading font-semibold text-foreground break-words">
+                        {candidate.nickname}
+                        {candidate.isSubstitute ? ' (запасной)' : ''}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{candidate.teamName}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Список кандидатов будет опубликован здесь.</p>
+              )}
+            </>
+          )}
+
+          {stage === 'finished' && mvpPlayer && (
             <>
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center mx-auto mb-6">
                 <Trophy className="text-primary-foreground" size={48} />
@@ -168,22 +271,17 @@ const MVP: React.FC = () => {
                 <p className="text-muted-foreground text-sm mt-1">MMR: {mvpPlayer.player.mmr.toLocaleString()}</p>
               )}
             </>
-          ) : (
+          )}
+
+          {stage === 'finished' && !mvpPlayer && (
             <>
               <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
                 <Star className="text-muted-foreground" size={48} />
               </div>
-              <h2 className="font-heading text-2xl font-bold text-foreground mb-4">MVP ещё не выбран</h2>
+              <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Победитель ещё не указан</h2>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Голосование за MVP пройдёт в Discord-канале после завершения турнира. Следите за обновлениями!
+                Голосование завершено. Победитель в номинации MVP появится здесь после обновления.
               </p>
-              <a
-                href={data.settings.discordLink}
-                target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 btn-primary-gradient px-6 py-2 rounded-lg mt-6"
-              >
-                Перейти в Discord
-              </a>
             </>
           )}
         </motion.div>
@@ -193,11 +291,55 @@ const MVP: React.FC = () => {
             <h3 className="font-heading font-bold text-foreground">Управление MVP</h3>
 
             <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Выберите MVP игрока</label>
+              <label className="text-sm text-muted-foreground mb-1 block">Текущая стадия MVP</label>
               <select
                 className="w-full bg-background border rounded-lg p-3 text-foreground"
-                value={settings.mvpPlayerId}
-                onChange={e => updateSettings({ mvpPlayerId: e.target.value })}
+                value={stage}
+                onChange={e => updateSettings({ mvpStage: e.target.value as MvpStage })}
+              >
+                <option value="announce">1) Анонс голосования</option>
+                <option value="voting">2) Голосование идёт</option>
+                <option value="finished">3) Финал (победитель)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Кандидаты для голосования (стадия 2)</label>
+              <div className="space-y-3 max-h-72 overflow-auto pr-1">
+                {data.teams.map(team => (
+                  <div key={team.id} className="rounded-lg border border-border/60 p-3">
+                    <p className="font-heading text-sm font-semibold mb-2">{team.name}</p>
+                    <div className="space-y-1">
+                      {team.players.filter(p => p.nickname.trim()).map(player => {
+                        const checked = (settings.mvpCandidatePlayerIds || []).includes(player.id);
+                        return (
+                          <label key={player.id} className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(event) => {
+                                const next = new Set(settings.mvpCandidatePlayerIds || []);
+                                if (event.target.checked) next.add(player.id);
+                                else next.delete(player.id);
+                                updateSettings({ mvpCandidatePlayerIds: Array.from(next) });
+                              }}
+                            />
+                            <span>{player.nickname}{player.isSubstitute ? ' (запасной)' : ''}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm text-muted-foreground mb-1 block">Победитель MVP (стадия 3)</label>
+              <select
+                className="w-full bg-background border rounded-lg p-3 text-foreground"
+                value={settings.mvpWinnerPlayerId || settings.mvpPlayerId}
+                onChange={e => updateSettings({ mvpWinnerPlayerId: e.target.value, mvpPlayerId: e.target.value })}
               >
                 <option value="">— MVP не выбран —</option>
                 {data.teams.map(team => (
@@ -214,11 +356,11 @@ const MVP: React.FC = () => {
 
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">
-                <Music size={15} className="inline mr-1" /> Музыка MVP страницы
+                <Music size={15} className="inline mr-1" /> Музыка текущей стадии MVP
               </label>
 
               <div className="text-xs text-muted-foreground/70 bg-muted/30 rounded-lg px-3 py-2 mb-3">
-                MP3 хранится в настройках Supabase и сразу доступен посетителям. Лимит: 20 МБ.
+                Отдельная MP3 для каждой стадии. Если трек не загружен, музыка не воспроизводится. Лимит: 20 МБ.
               </div>
 
               {hasMusic && !uploading && (
@@ -244,7 +386,7 @@ const MVP: React.FC = () => {
               {uploadDone && !uploadError && (
                 <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2 mb-3 text-xs text-green-400">
                   <CheckCircle size={14} />
-                  Загружено в Supabase.
+                  Загружено для текущей стадии.
                 </div>
               )}
 

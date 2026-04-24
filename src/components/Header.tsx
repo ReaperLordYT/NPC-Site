@@ -12,6 +12,7 @@ const navItems = [
   { path: '/free-players', label: 'Свободные игроки' },
   { path: '/tournament', label: 'Турнир' },
   { path: '/schedule', label: 'Расписание' },
+  { path: '/mvp', label: 'MVP' },
   { path: '/organizers', label: 'Организаторы' },
 ];
 

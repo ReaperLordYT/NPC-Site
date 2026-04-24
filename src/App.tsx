@@ -24,6 +24,7 @@ import Admin from "./pages/Admin";
 import Organizers from "./pages/Organizers";
 import Maintenance from "./pages/Maintenance";
 import FreePlayers from "./pages/FreePlayers";
+import MVP from "./pages/MVP";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const AppInner: React.FC = () => {
         <Route path="/teams/:id" element={<TeamDetail />} />
         <Route path="/tournament" element={<Tournament />} />
         <Route path="/schedule" element={<Schedule />} />
+        <Route path="/mvp" element={<MVP />} />
         <Route path="/free-players" element={<FreePlayers />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/organizers" element={<Organizers />} />

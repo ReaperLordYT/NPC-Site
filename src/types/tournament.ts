@@ -129,9 +129,15 @@ export interface SiteSettings {
   scheduleCompletedText: string;
   mvpText: string;
   mvpPrize: string;
+  mvpStage: 'announce' | 'voting' | 'finished';
+  mvpCandidatePlayerIds: string[];
   musicUrl: string;
   mvpPlayerId: string;
+  mvpWinnerPlayerId: string;
   mvpMusicUrl: string;
+  mvpAnnounceMusicUrl: string;
+  mvpVotingMusicUrl: string;
+  mvpFinishedMusicUrl: string;
   infoCards: InfoCard[];
   formatStages: FormatStage[];
   faqItems: FaqItem[];
