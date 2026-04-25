@@ -329,8 +329,9 @@ const TeamDetail: React.FC = () => {
                   const opp = data.teams.find(t => t.id === oppId);
                   const groupName = match.groupId ? data.groups.find(g => g.id === match.groupId)?.name : null;
                   const isTeam1 = match.team1Id === team.id;
-                  const myScore = match.result ? (isTeam1 ? match.result.team1Score : match.result.team2Score) : null;
-                  const theirScore = match.result ? (isTeam1 ? match.result.team2Score : match.result.team1Score) : null;
+                  const hasFinalResult = match.status === 'completed' && !!match.result;
+                  const myScore = hasFinalResult && match.result ? (isTeam1 ? match.result.team1Score : match.result.team2Score) : null;
+                  const theirScore = hasFinalResult && match.result ? (isTeam1 ? match.result.team2Score : match.result.team1Score) : null;
                   const didWin = myScore !== null && theirScore !== null && myScore > theirScore;
                   const didLose = myScore !== null && theirScore !== null && myScore < theirScore;
                   const isCompleted = match.status === 'completed';
@@ -365,7 +366,7 @@ const TeamDetail: React.FC = () => {
                         </div>
 
                         {/* Score */}
-                        {match.result ? (
+                        {hasFinalResult ? (
                           <div className="flex items-center gap-2">
                             <span className={`text-2xl font-display font-bold tabular-nums ${didWin ? 'text-green-400' : didLose ? 'text-red-400' : 'text-yellow-400'}`}>
                               {myScore}
@@ -382,7 +383,7 @@ const TeamDetail: React.FC = () => {
                             match.status === 'cancelled' ? 'bg-muted text-muted-foreground' :
                             'bg-muted text-muted-foreground'
                           }`}>
-                            {match.status === 'live' ? '🔴 LIVE' : match.status === 'cancelled' ? '❌ Отменён' : 'LIVE'}
+                            {match.status === 'live' ? '🔴 LIVE' : match.status === 'cancelled' ? '❌ Отменён' : 'ОЖИДАЕТСЯ'}
                           </div>
                         )}
                       </div>

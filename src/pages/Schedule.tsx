@@ -199,7 +199,7 @@ const Schedule: React.FC = () => {
       status: editForm.status,
       stage: editForm.stage,
       format: editForm.format,
-      result: hasScore ? { team1Score: editForm.score1, team2Score: editForm.score2 } : match.result,
+      result: hasScore ? { team1Score: editForm.score1, team2Score: editForm.score2 } : undefined,
     });
     setEditingMatchId(null);
   };
@@ -283,7 +283,7 @@ const Schedule: React.FC = () => {
                 <span className="text-muted-foreground font-heading">{stageLabels[selectedMatchData.stage]}</span>
                 <StatusBadge status={selectedMatchData.status} />
               </div>
-              {selectedMatchData.result && (
+              {selectedMatchData.status === 'completed' && selectedMatchData.result && (
                 <div className="text-center mb-4">
                   <span className="font-display text-3xl font-bold text-foreground">{selectedMatchData.result.team1Score} - {selectedMatchData.result.team2Score}</span>
                 </div>
@@ -446,7 +446,7 @@ const Schedule: React.FC = () => {
                       <span className={`text-xs font-heading font-bold px-2 py-0.5 rounded-md ${isCancelled ? 'text-muted-foreground bg-muted/30' : 'text-primary bg-primary/10'}`}>{match.format}</span>
                     </td>
                     <td className="py-3 px-4 text-center font-heading font-bold text-foreground">
-                      {match.result ? `${match.result.team1Score} - ${match.result.team2Score}` : '—'}
+                      {match.status === 'completed' && match.result ? `${match.result.team1Score} - ${match.result.team2Score}` : '—'}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <StatusBadge status={match.status} />
