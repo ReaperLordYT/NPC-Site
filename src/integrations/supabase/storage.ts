@@ -38,8 +38,6 @@ type MatchRow = {
   id: string;
   team1_id: string;
   team2_id: string;
-  team1_label: string | null;
-  team2_label: string | null;
   stage: TournamentMatch['stage'];
   format: TournamentMatch['format'];
   group_id: string | null;
@@ -195,8 +193,6 @@ export async function fetchTournamentData(): Promise<TournamentData> {
       id: m.id,
       team1Id: m.team1_id,
       team2Id: m.team2_id,
-      team1Label: m.team1_label || undefined,
-      team2Label: m.team2_label || undefined,
       stage: m.stage,
       format: m.format,
       groupId: m.group_id || undefined,
@@ -251,8 +247,6 @@ export async function saveTournamentData(data: TournamentData): Promise<void> {
     id: m.id,
     team1_id: m.team1Id,
     team2_id: m.team2Id,
-    team1_label: m.team1Label ?? null,
-    team2_label: m.team2Label ?? null,
     stage: m.stage,
     format: m.format,
     group_id: m.groupId ?? null,

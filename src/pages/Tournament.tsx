@@ -30,6 +30,11 @@ function decodeSlotLabel(teamId?: string, teamLabel?: string): string {
   return teamId.startsWith(SLOT_LABEL_PREFIX) ? teamId.slice(SLOT_LABEL_PREFIX.length).trim() : '';
 }
 
+function normalizeTeamId(teamId?: string): string {
+  if (!teamId) return '';
+  return teamId.startsWith(SLOT_LABEL_PREFIX) ? '' : teamId;
+}
+
 function encodeSlot(teamId: string, teamLabel: string): { teamId: string; teamLabel?: string } {
   if (teamId) return { teamId, teamLabel: undefined };
   const normalized = teamLabel.trim();
@@ -56,8 +61,8 @@ interface MatchEditState {
 }
 function initEdit(m: TournamentMatch): MatchEditState {
   return {
-    team1Id: m.team1Id || '',
-    team2Id: m.team2Id || '',
+    team1Id: normalizeTeamId(m.team1Id),
+    team2Id: normalizeTeamId(m.team2Id),
     team1Label: decodeSlotLabel(m.team1Id, m.team1Label),
     team2Label: decodeSlotLabel(m.team2Id, m.team2Label),
     format: m.format, stage: m.stage, status: m.status,
