@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, RefreshCw, Tv, Edit2, Check, X, Trophy, Crown, Link, Move, HelpCircle } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Tv, Edit2, Check, X, Trophy, Crown, Link, Move, HelpCircle, RotateCcw, LocateFixed } from 'lucide-react';
 import { TournamentMatch, Group, BracketConnection } from '@/types/tournament';
 import { formatDate } from '@/lib/dateFormat';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
@@ -26,6 +26,8 @@ const GROUP_ROUND_TIMES: Record<number, string> = {
 interface MatchEditState {
   team1Id: string;
   team2Id: string;
+  team1Label: string;
+  team2Label: string;
   format: TournamentMatch['format'];
   stage: TournamentMatch['stage'];
   status: TournamentMatch['status'];
@@ -40,6 +42,8 @@ function initEdit(m: TournamentMatch): MatchEditState {
   return {
     team1Id: m.team1Id || '',
     team2Id: m.team2Id || '',
+    team1Label: m.team1Label || '',
+    team2Label: m.team2Label || '',
     format: m.format, stage: m.stage, status: m.status,
     scheduledDate: m.scheduledDate, scheduledTime: m.scheduledTime,
     streamLink: m.streamLink || '', round: m.round || 1,
@@ -52,12 +56,14 @@ const MatchCard: React.FC<{ match: TournamentMatch; onOpenDetails?: (match: Tour
   const { getTeamById, isAdmin, isEditing, updateMatch, deleteMatch } = useTournament();
   const t1 = getTeamById(match.team1Id);
   const t2 = getTeamById(match.team2Id);
+  const t1Name = t1?.name || match.team1Label || 'TBD';
+  const t2Name = t2?.name || match.team2Label || 'TBD';
   const [editing, setEditing] = useState(false);
   const [ed, setEd] = useState<MatchEditState>(() => initEdit(match));
 
   const saveEdit = () => {
     updateMatch({
-      ...match, team1Id: ed.team1Id, team2Id: ed.team2Id, format: ed.format, stage: ed.stage, status: ed.status,
+      ...match, team1Id: ed.team1Id, team2Id: ed.team2Id, team1Label: ed.team1Label, team2Label: ed.team2Label, format: ed.format, stage: ed.stage, status: ed.status,
       scheduledDate: ed.scheduledDate, scheduledTime: ed.scheduledTime,
       streamLink: ed.streamLink || undefined, round: ed.round,
       result: (ed.status === 'completed' || ed.status === 'live')
@@ -132,11 +138,11 @@ const MatchCard: React.FC<{ match: TournamentMatch; onOpenDetails?: (match: Tour
           </div>
           {(ed.status === 'completed' || ed.status === 'live') && (
             <div className="flex items-center gap-3 bg-background/50 rounded-lg px-4 py-3">
-              <span className="text-sm text-muted-foreground font-heading">{t1?.name || 'TBD'}</span>
+              <span className="text-sm text-muted-foreground font-heading">{t1Name}</span>
               <input type="number" min={0} max={9} className="w-14 bg-background border rounded p-1 text-center text-foreground font-bold" value={ed.score1} onChange={e => setEd(p => ({ ...p, score1: parseInt(e.target.value) || 0 }))} />
               <span className="text-muted-foreground font-bold">:</span>
               <input type="number" min={0} max={9} className="w-14 bg-background border rounded p-1 text-center text-foreground font-bold" value={ed.score2} onChange={e => setEd(p => ({ ...p, score2: parseInt(e.target.value) || 0 }))} />
-              <span className="text-sm text-muted-foreground font-heading">{t2?.name || 'TBD'}</span>
+              <span className="text-sm text-muted-foreground font-heading">{t2Name}</span>
             </div>
           )}
           <div className="flex gap-2">
@@ -150,12 +156,12 @@ const MatchCard: React.FC<{ match: TournamentMatch; onOpenDetails?: (match: Tour
             <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-heading">{match.format}</span>
             <div className="flex items-center gap-2">
               {t1?.logo && <img src={t1.logo} alt="" className="w-7 h-7 rounded object-cover" />}
-              <span className={`font-heading font-semibold text-base ${t1Win ? 'text-primary' : 'text-foreground'}`}>{t1?.name || 'TBD'}</span>
+              <span className={`font-heading font-semibold text-base ${t1Win ? 'text-primary' : 'text-foreground'}`}>{t1Name}</span>
             </div>
             <span className="text-muted-foreground">vs</span>
             <div className="flex items-center gap-2">
               {t2?.logo && <img src={t2.logo} alt="" className="w-7 h-7 rounded object-cover" />}
-              <span className={`font-heading font-semibold text-base ${t2Win ? 'text-primary' : 'text-foreground'}`}>{t2?.name || 'TBD'}</span>
+              <span className={`font-heading font-semibold text-base ${t2Win ? 'text-primary' : 'text-foreground'}`}>{t2Name}</span>
             </div>
             {match.result && <span className="font-heading font-bold text-lg text-foreground">{match.result.team1Score} — {match.result.team2Score}</span>}
           </div>
@@ -188,8 +194,8 @@ interface MatchNode extends TournamentMatch {
 interface NodeConnection extends BracketConnection {}
 
 // ─── Card dimensions ─────────────────────────────────────────────────────────
-const NODE_W = 300;
-const NODE_H = 108; // Increased for better readability
+const NODE_W = 332;
+const NODE_H = 118; // Increased for better readability
 const PORT_R = 6;  // radius of connection port circles
 
 // ─── Node Card (draggable) ───────────────────────────────────────────────────
@@ -215,6 +221,8 @@ const NodeCard: React.FC<NodeCardProps> = ({
   const { getTeamById } = useTournament();
   const t1 = getTeamById(match.team1Id);
   const t2 = getTeamById(match.team2Id);
+  const t1Name = t1?.name || match.team1Label || 'TBD';
+  const t2Name = t2?.name || match.team2Label || 'TBD';
 
   // Determine required wins from format (e.g. Bo3 -> 2)
   const nodeWinsRequired = React.useMemo(() => {
@@ -306,12 +314,10 @@ const NodeCard: React.FC<NodeCardProps> = ({
         if (isAdmin && isEditing && !connectMode) onEdit(match.id);
       }}
     >
-      <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground/80 font-heading font-bold">
-        {blockNumber}
-      </div>
       {/* Header */}
       <div className={`flex items-center justify-between px-3 py-1.5 border-b border-border/20 ${stageBg}`}>
         <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[11px] text-foreground/90 font-heading font-bold w-5 text-center">{blockNumber}</span>
           {isEditing && !connectMode && (
             <Move size={11} className="text-muted-foreground/40 flex-shrink-0" />
           )}
@@ -356,7 +362,7 @@ const NodeCard: React.FC<NodeCardProps> = ({
             : <div className="w-6 h-6 rounded bg-muted flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-muted-foreground">{t1?.tag?.[0] || '?'}</div>
           }
           <span className={`text-[15px] font-heading truncate ${t1Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
-            {t1?.name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
+            {t1Name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
           </span>
         </div>
         <div className="flex items-center gap-1.5 ml-1 flex-shrink-0">
@@ -381,7 +387,7 @@ const NodeCard: React.FC<NodeCardProps> = ({
             : <div className="w-6 h-6 rounded bg-muted flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-muted-foreground">{t2?.tag?.[0] || '?'}</div>
           }
           <span className={`text-[15px] font-heading truncate ${t2Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
-            {t2?.name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
+            {t2Name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
           </span>
         </div>
         <div className="flex items-center gap-1.5 ml-1 flex-shrink-0">
@@ -657,6 +663,8 @@ const NodeBracketEditor: React.FC = () => {
       ...match,
       team1Id: nodeEditState.team1Id,
       team2Id: nodeEditState.team2Id,
+      team1Label: nodeEditState.team1Label,
+      team2Label: nodeEditState.team2Label,
       format: nodeEditState.format,
       stage: nodeEditState.stage,
       status: nodeEditState.status,
@@ -828,8 +836,20 @@ const NodeBracketEditor: React.FC = () => {
         <button onClick={() => { setUserAdjustedView(true); setZoom(z => Math.max(0.45, +(z - 0.1).toFixed(2))); }} className="px-2 py-0.5 border border-border rounded hover:text-foreground">−</button>
         <span className="min-w-12 text-center">{Math.round(zoom * 100)}%</span>
         <button onClick={() => { setUserAdjustedView(true); setZoom(z => Math.min(2.2, +(z + 0.1).toFixed(2))); }} className="px-2 py-0.5 border border-border rounded hover:text-foreground">+</button>
-        <button onClick={() => { setUserAdjustedView(true); setZoom(1); }} className="text-primary hover:underline">Сброс</button>
-        <button onClick={() => { setUserAdjustedView(false); fitToView(); }} className="text-primary hover:underline">Центрировать</button>
+        <button
+          onClick={() => { setUserAdjustedView(true); setZoom(1); setPan({ x: 0, y: 0 }); }}
+          className="inline-flex items-center gap-1 px-2 py-0.5 border border-border rounded hover:text-foreground"
+          title="Сбросить масштаб и позицию"
+        >
+          <RotateCcw size={12} /> Сброс
+        </button>
+        <button
+          onClick={() => { setUserAdjustedView(false); fitToView(); }}
+          className="inline-flex items-center gap-1 px-2 py-0.5 border border-border rounded hover:text-foreground"
+          title="Центрировать сетку"
+        >
+          <LocateFixed size={12} /> Центрировать
+        </button>
         <button
           onClick={() => setShowHelp(s => !s)}
           className={`inline-flex items-center gap-1 px-2 py-0.5 border rounded transition-all ${showHelp ? 'border-primary text-primary bg-primary/10' : 'border-border hover:text-foreground'}`}
@@ -843,7 +863,6 @@ const NodeBracketEditor: React.FC = () => {
           <p><span className="text-foreground font-heading">Колесо мыши</span> — масштаб сетки внутри блока (страница не зумится).</p>
           <p><span className="text-foreground font-heading">Shift + колесо</span>, <span className="text-foreground font-heading">ПКМ</span> или <span className="text-foreground font-heading">средняя кнопка</span> — перемещение по канвасу.</p>
           <p><span className="text-foreground font-heading">Центрировать</span> — автоматически выровнять сетку по центру окна.</p>
-          <p><span className="text-foreground font-heading">В режиме редактирования</span>: перетаскивай блоки, двойной клик по блоку — редактирование, кнопка «Соединить узлы» — связь матчей.</p>
         </div>
       )}
 
@@ -974,6 +993,24 @@ const NodeBracketEditor: React.FC = () => {
                 <option value="">TBD</option>
                 {data.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Текст вместо TBD (слот 1)</label>
+              <input
+                className="w-full bg-background border rounded-lg p-2 text-foreground text-sm"
+                placeholder="Напр. Проигравший из блока 1"
+                value={nodeEditState.team1Label}
+                onChange={e => setNodeEditState(p => p ? ({ ...p, team1Label: e.target.value }) : p)}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">Текст вместо TBD (слот 2)</label>
+              <input
+                className="w-full bg-background border rounded-lg p-2 text-foreground text-sm"
+                placeholder="Напр. Проигравший из блока 2"
+                value={nodeEditState.team2Label}
+                onChange={e => setNodeEditState(p => p ? ({ ...p, team2Label: e.target.value }) : p)}
+              />
             </div>
             <div>
               <label className="text-xs text-muted-foreground block mb-1">Формат</label>
@@ -1123,6 +1160,7 @@ const Tournament: React.FC = () => {
   const [selectedMatch, setSelectedMatch] = useState<TournamentMatch | null>(null);
   const [newMatch, setNewMatch] = useState({
     team1Id: '', team2Id: '', format: 'Bo1' as TournamentMatch['format'],
+    team1Label: '', team2Label: '',
     stage: 'playoff-upper' as TournamentMatch['stage'],
     groupId: '', scheduledDate: '', scheduledTime: '', streamLink: '', round: 1,
   });
@@ -1156,6 +1194,7 @@ const Tournament: React.FC = () => {
     addMatch({
       id: Date.now().toString(),
       team1Id: newMatch.team1Id, team2Id: newMatch.team2Id,
+      team1Label: newMatch.team1Label, team2Label: newMatch.team2Label,
       format: newMatch.format, stage: newMatch.stage,
       groupId: newMatch.stage === 'group' ? newMatch.groupId : undefined,
       scheduledDate: newMatch.scheduledDate, scheduledTime: newMatch.scheduledTime,
@@ -1163,7 +1202,7 @@ const Tournament: React.FC = () => {
       round: newMatch.round, status: 'scheduled',
     });
     setShowNewMatch(false);
-    setNewMatch({ team1Id: '', team2Id: '', format: 'Bo1', stage: 'playoff-upper', groupId: '', scheduledDate: '', scheduledTime: '', streamLink: '', round: 1 });
+    setNewMatch({ team1Id: '', team2Id: '', team1Label: '', team2Label: '', format: 'Bo1', stage: 'playoff-upper', groupId: '', scheduledDate: '', scheduledTime: '', streamLink: '', round: 1 });
   };
 
   const handleAddEmptyBlock = (stage: TournamentMatch['stage'], round: number) => {
@@ -1222,6 +1261,24 @@ const Tournament: React.FC = () => {
             .filter(t => t.id !== newMatch.team1Id)
             .map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
+      </div>
+      <div>
+        <label className="text-xs text-muted-foreground block mb-1">Текст слота 1 (если нет команды)</label>
+        <input
+          className="w-full bg-background border rounded-lg p-2 text-foreground text-sm"
+          placeholder="Проигравший из блока 1"
+          value={newMatch.team1Label}
+          onChange={e => setNewMatch(p => ({ ...p, team1Label: e.target.value }))}
+        />
+      </div>
+      <div>
+        <label className="text-xs text-muted-foreground block mb-1">Текст слота 2 (если нет команды)</label>
+        <input
+          className="w-full bg-background border rounded-lg p-2 text-foreground text-sm"
+          placeholder="Проигравший из блока 2"
+          value={newMatch.team2Label}
+          onChange={e => setNewMatch(p => ({ ...p, team2Label: e.target.value }))}
+        />
       </div>
       <div>
         <label className="text-xs text-muted-foreground block mb-1">Формат</label>
@@ -1618,7 +1675,7 @@ const Tournament: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3">
                   <div className="text-center sm:text-left">
                     <p className="text-sm text-muted-foreground">Команда 1</p>
-                    <p className="font-heading font-semibold text-foreground">{selectedT1?.name || 'TBD'}</p>
+                    <p className="font-heading font-semibold text-foreground">{selectedT1?.name || selectedMatch.team1Label || 'TBD'}</p>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-display font-bold text-foreground">
@@ -1630,7 +1687,7 @@ const Tournament: React.FC = () => {
                   </div>
                   <div className="text-center sm:text-right">
                     <p className="text-sm text-muted-foreground">Команда 2</p>
-                    <p className="font-heading font-semibold text-foreground">{selectedT2?.name || 'TBD'}</p>
+                    <p className="font-heading font-semibold text-foreground">{selectedT2?.name || selectedMatch.team2Label || 'TBD'}</p>
                   </div>
                 </div>
               </div>

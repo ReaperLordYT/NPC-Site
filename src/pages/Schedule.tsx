@@ -13,6 +13,7 @@ interface Filters { stage: string; format: string; status: string; search: strin
 
 const STAGE_OPTIONS = [
   { value: '', label: 'Все стадии' },
+  { value: 'playoff', label: 'Плейофф (верхняя + нижняя)' },
   { value: 'group', label: 'Групповой' },
   { value: 'playoff-upper', label: 'Верхняя сетка' },
   { value: 'playoff-lower', label: 'Нижняя сетка' },
@@ -106,7 +107,13 @@ const Schedule: React.FC = () => {
 
   const processed = useMemo(() => {
     let list = [...data.matches];
-    if (filters.stage)  list = list.filter(m => m.stage === filters.stage);
+    if (filters.stage) {
+      if (filters.stage === 'playoff') {
+        list = list.filter(m => m.stage === 'playoff-upper' || m.stage === 'playoff-lower');
+      } else {
+        list = list.filter(m => m.stage === filters.stage);
+      }
+    }
     if (filters.format) list = list.filter(m => m.format === filters.format);
     if (filters.status) list = list.filter(m => m.status === filters.status);
     if (filters.search.trim()) {

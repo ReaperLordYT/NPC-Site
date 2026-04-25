@@ -53,6 +53,8 @@ export interface TournamentMatch {
   id: string;
   team1Id: string;
   team2Id: string;
+  team1Label?: string;
+  team2Label?: string;
   stage: 'group' | 'playoff-upper' | 'playoff-lower' | 'final';
   format: 'Bo1' | 'Bo2' | 'Bo3';
   groupId?: string;
