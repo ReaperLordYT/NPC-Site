@@ -217,8 +217,8 @@ interface MatchNode extends TournamentMatch {
 interface NodeConnection extends BracketConnection {}
 
 // ─── Card dimensions ─────────────────────────────────────────────────────────
-const NODE_W = 332;
-const NODE_H = 118; // Increased for better readability
+const NODE_W = 380;
+const NODE_H = 136; // Increased for better readability
 const PORT_R = 6;  // radius of connection port circles
 
 // ─── Node Card (draggable) ───────────────────────────────────────────────────
@@ -331,21 +331,23 @@ const NodeCard: React.FC<NodeCardProps> = ({
         cursor: connectMode ? 'pointer' : isEditing ? (dragging ? 'grabbing' : 'grab') : 'default',
         userSelect: 'none',
       }}
-      className={`rounded-xl overflow-hidden border shadow-xl ${stageColor} ${cancelled ? 'opacity-40' : ''} ${match.status === 'live' ? 'ring-2 ring-red-500/70' : ''} ${match.status === 'completed' ? 'ring-2 ring-green-500/55 border-green-500/65' : ''} bg-card/95 transition-shadow ${dragging ? 'shadow-2xl shadow-primary/30' : ''} ${connectingFrom === match.id ? 'ring-2 ring-primary' : ''} ${!match.team1Id && !match.team2Id ? 'border-dashed opacity-75' : ''}`}
+      className={`rounded-2xl overflow-hidden border shadow-xl ${stageColor} ${cancelled ? 'opacity-40' : ''} ${match.status === 'live' ? 'ring-2 ring-red-500/70' : ''} ${match.status === 'completed' ? 'ring-2 ring-green-500/55 border-green-500/65' : ''} bg-card/95 transition-shadow ${dragging ? 'shadow-2xl shadow-primary/30' : ''} ${connectingFrom === match.id ? 'ring-2 ring-primary' : ''} ${!match.team1Id && !match.team2Id ? 'border-dashed opacity-75' : ''}`}
       onMouseDown={onMouseDown}
       onDoubleClick={() => {
         if (isAdmin && isEditing && !connectMode) onEdit(match.id);
       }}
     >
       {/* Header */}
-      <div className={`flex items-center justify-between px-3 py-1.5 border-b border-border/20 ${stageBg}`}>
+      <div className={`flex items-center justify-between px-4 py-2 border-b border-border/20 ${stageBg}`}>
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[11px] text-foreground/90 font-heading font-bold w-5 text-center">{blockNumber}</span>
+          <span className="text-sm text-foreground font-heading font-bold w-7 h-7 rounded-full border border-primary/40 bg-primary/10 inline-flex items-center justify-center">
+            {blockNumber}
+          </span>
           {isEditing && !connectMode && (
-            <Move size={11} className="text-muted-foreground/40 flex-shrink-0" />
+            <Move size={13} className="text-muted-foreground/40 flex-shrink-0" />
           )}
-          <span className="text-[11px] font-heading text-muted-foreground tracking-wider">{match.format}</span>
-          <span className={`text-[9px] font-heading px-1.5 py-0.5 rounded-full ${
+          <span className="text-xs font-heading text-muted-foreground tracking-wider">{match.format}</span>
+          <span className={`text-[10px] font-heading px-2 py-0.5 rounded-full ${
             match.stage === 'final' ? 'bg-yellow-400/20 text-yellow-300' :
             match.stage === 'playoff-upper' ? 'bg-blue-500/20 text-blue-300' :
             match.stage === 'playoff-lower' ? 'bg-red-500/20 text-red-300' :
@@ -356,10 +358,10 @@ const NodeCard: React.FC<NodeCardProps> = ({
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0 ml-2" data-no-drag="1">
           {(match.scheduledDate || match.scheduledTime) && (
-            <span className="text-[9px] text-muted-foreground/50">{formatDate(match.scheduledDate)} {match.scheduledTime}</span>
+            <span className="text-[10px] text-muted-foreground/50">{formatDate(match.scheduledDate)} {match.scheduledTime}</span>
           )}
-          {match.status === 'live' && <span className="text-[9px] text-red-400 animate-pulse font-bold">● LIVE</span>}
-          {match.status === 'completed' && <span className="text-[9px] text-green-400">✓</span>}
+          {match.status === 'live' && <span className="text-[10px] text-red-400 animate-pulse font-bold">● LIVE</span>}
+          {match.status === 'completed' && <span className="text-[10px] text-green-400">✓</span>}
           {match.streamLink && (
             <a href={match.streamLink} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
               <Tv size={9} className="text-primary" />
@@ -376,21 +378,21 @@ const NodeCard: React.FC<NodeCardProps> = ({
       {/* Team 1 */}
       <div
         data-no-drag="1"
-        className={`flex items-center justify-between px-3 py-2 transition-colors ${t1Win ? 'bg-primary/10' : ''} ${isEditing && !connectMode && t1 ? 'cursor-pointer hover:bg-muted/20' : ''}`}
+        className={`flex items-center justify-between px-4 py-3 transition-colors ${t1Win ? 'bg-primary/10' : ''} ${isEditing && !connectMode && t1 ? 'cursor-pointer hover:bg-muted/20' : ''}`}
         onClick={() => { if (isEditing && !connectMode && t1) onWin(match.id, 1); }}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {t1?.logo
-            ? <img src={t1.logo} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
-            : <div className="w-6 h-6 rounded bg-muted flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-muted-foreground">{t1?.tag?.[0] || '?'}</div>
+            ? <img src={t1.logo} alt="" className="w-7 h-7 rounded object-cover flex-shrink-0" />
+            : <div className="w-7 h-7 rounded bg-muted flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-muted-foreground">{t1?.tag?.[0] || '?'}</div>
           }
-          <span className={`text-[15px] font-heading truncate ${t1Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
+          <span className={`text-base font-heading truncate ${t1Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
             {t1Name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
           </span>
         </div>
         <div className="flex items-center gap-1.5 ml-1 flex-shrink-0">
           {t1Win && (isFinal ? <Trophy size={13} className="text-yellow-400" /> : <Crown size={12} className="text-yellow-400" />)}
-          <span className={`text-base font-heading font-bold tabular-nums w-5 text-right ${t1Win ? 'text-primary' : 'text-muted-foreground/40'}`}>
+          <span className={`text-lg font-heading font-bold tabular-nums w-6 text-right ${t1Win ? 'text-primary' : 'text-muted-foreground/40'}`}>
             {match.result != null ? match.result.team1Score : '—'}
           </span>
         </div>
@@ -401,21 +403,21 @@ const NodeCard: React.FC<NodeCardProps> = ({
       {/* Team 2 */}
       <div
         data-no-drag="1"
-        className={`flex items-center justify-between px-3 py-2 transition-colors ${t2Win ? 'bg-primary/10' : ''} ${isEditing && !connectMode && t2 ? 'cursor-pointer hover:bg-muted/20' : ''}`}
+        className={`flex items-center justify-between px-4 py-3 transition-colors ${t2Win ? 'bg-primary/10' : ''} ${isEditing && !connectMode && t2 ? 'cursor-pointer hover:bg-muted/20' : ''}`}
         onClick={() => { if (isEditing && !connectMode && t2) onWin(match.id, 2); }}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {t2?.logo
-            ? <img src={t2.logo} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
-            : <div className="w-6 h-6 rounded bg-muted flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-muted-foreground">{t2?.tag?.[0] || '?'}</div>
+            ? <img src={t2.logo} alt="" className="w-7 h-7 rounded object-cover flex-shrink-0" />
+            : <div className="w-7 h-7 rounded bg-muted flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-muted-foreground">{t2?.tag?.[0] || '?'}</div>
           }
-          <span className={`text-[15px] font-heading truncate ${t2Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
+          <span className={`text-base font-heading truncate ${t2Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
             {t2Name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
           </span>
         </div>
         <div className="flex items-center gap-1.5 ml-1 flex-shrink-0">
           {t2Win && (isFinal ? <Trophy size={13} className="text-yellow-400" /> : <Crown size={12} className="text-yellow-400" />)}
-          <span className={`text-base font-heading font-bold tabular-nums w-5 text-right ${t2Win ? 'text-primary' : 'text-muted-foreground/40'}`}>
+          <span className={`text-lg font-heading font-bold tabular-nums w-6 text-right ${t2Win ? 'text-primary' : 'text-muted-foreground/40'}`}>
             {match.result != null ? match.result.team2Score : '—'}
           </span>
         </div>
@@ -456,8 +458,8 @@ function savePositions(_ps: Record<string, { x: number; y: number }>) { /* no-op
 
 // ─── Auto-layout: arrange nodes in columns by round ─────────────────────────
 function autoLayout(matches: TournamentMatch[]): Record<string, { x: number; y: number }> {
-  const COL_W = NODE_W + 80;
-  const ROW_H = NODE_H + 36;
+  const COL_W = NODE_W + 96;
+  const ROW_H = NODE_H + 44;
 
   // Separate upper, lower, final
   const upper = matches.filter(m => m.stage === 'playoff-upper');
