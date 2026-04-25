@@ -924,7 +924,9 @@ const NodeBracketEditor: React.FC = () => {
 
 // ─── Auto-generate Double Elimination bracket ─────────────────────────────────
 function buildDoubleElimMatches(teams: { id: string; status?: string }[]): TournamentMatch[] {
-  const active = teams.filter(t => t.status !== 'withdrawn' && t.status !== 'disqualified');
+  const active = teams.filter(
+    t => t.status !== 'withdrawn' && t.status !== 'disqualified' && t.status !== 'eliminated'
+  );
   if (active.length < 2) return [];
 
   const n = Math.pow(2, Math.ceil(Math.log2(active.length)));
@@ -1275,7 +1277,11 @@ const Tournament: React.FC = () => {
                                       ? <img src={team.logo} alt="" className="w-7 h-7 rounded object-cover" />
                                       : <div className="w-7 h-7 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground font-bold">{team?.tag?.[0] || '?'}</div>}
                                     <span className="font-heading text-foreground">{team?.name || 'N/A'}</span>
-                                    {team?.status === 'withdrawn' && <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-heading">снялась</span>}
+                                    {(team?.status === 'withdrawn' || team?.status === 'eliminated') && (
+                                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-heading">
+                                        {team.status === 'eliminated' ? 'выбыли' : 'снялась'}
+                                      </span>
+                                    )}
                                   </div>
                                 </td>
                                 <td className="text-center py-3 px-3 text-green-400 font-heading font-semibold">{s.wins}</td>
@@ -1293,11 +1299,11 @@ const Tournament: React.FC = () => {
                     {group.teamIds.map(tid => {
                       const team = getTeamById(tid);
                       return (
-                        <div key={tid} className={`flex items-center gap-2 bg-background/50 rounded-lg px-3 py-2 ${team?.status === 'withdrawn' ? 'opacity-50' : ''}`}>
+                        <div key={tid} className={`flex items-center gap-2 bg-background/50 rounded-lg px-3 py-2 ${(team?.status === 'withdrawn' || team?.status === 'eliminated') ? 'opacity-50' : ''}`}>
                           {team?.logo
                             ? <img src={team.logo} alt="" className="w-6 h-6 rounded object-cover" />
                             : <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">{team?.tag?.[0] || '?'}</div>}
-                          <span className={`text-sm font-heading text-foreground ${team?.status === 'withdrawn' ? 'line-through' : ''}`}>{team?.name || 'N/A'}</span>
+                          <span className={`text-sm font-heading text-foreground ${(team?.status === 'withdrawn' || team?.status === 'eliminated') ? 'line-through' : ''}`}>{team?.name || 'N/A'}</span>
                           {isAdmin && isEditing && (
                             <button onClick={() => handleRemoveTeamFromGroup(group.id, tid)} className="text-muted-foreground hover:text-destructive ml-1 transition-colors">
                               <Trash2 size={11} />

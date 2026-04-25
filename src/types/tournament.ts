@@ -17,7 +17,7 @@ export interface Team {
   tag: string;
   logo: string;
   players: Player[];
-  status: 'confirmed' | 'pending' | 'disqualified' | 'withdrawn';
+  status: 'confirmed' | 'pending' | 'disqualified' | 'withdrawn' | 'eliminated';
   disqualificationReason?: string;
   withdrawalReason?: string;
   groupId?: string;

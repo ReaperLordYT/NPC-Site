@@ -92,6 +92,7 @@ const Teams: React.FC = () => {
             <option value="all">Все статусы</option>
             <option value="confirmed">Подтверждена</option>
             <option value="pending">Ожидается</option>
+            <option value="eliminated">Выбыли</option>
             <option value="withdrawn">Снялась</option>
             <option value="disqualified">Дисквалифицирована</option>
           </select>
@@ -153,10 +154,13 @@ const Teams: React.FC = () => {
                   <span className={`px-2 py-0.5 rounded text-xs font-heading ${
                     team.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :
                     team.status === 'disqualified' ? 'bg-red-500/20 text-red-400' :
+                    team.status === 'eliminated' ? 'bg-slate-500/20 text-slate-300' :
                     'bg-yellow-500/20 text-yellow-400'
                   }`}>
                     {team.status === 'confirmed' ? 'Подтверждена' :
-                     team.status === 'disqualified' ? 'Дисквалифицирована' : team.status === 'withdrawn' ? 'Снялась' : 'Ожидается'}
+                     team.status === 'disqualified' ? 'Дисквалифицирована' :
+                     team.status === 'withdrawn' ? 'Снялась' :
+                     team.status === 'eliminated' ? 'Выбыли' : 'Ожидается'}
                   </span>
                 </div>
                 {team.status === 'disqualified' && team.disqualificationReason && (

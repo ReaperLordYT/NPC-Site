@@ -98,6 +98,7 @@ const TeamDetail: React.FC = () => {
     confirmed:     { label: 'Подтверждена',    bg: 'bg-green-500/20',  text: 'text-green-400'  },
     disqualified:  { label: 'Дисквалифицирована', bg: 'bg-red-500/20', text: 'text-red-400'    },
     pending:       { label: 'Ожидается',        bg: 'bg-yellow-500/20', text: 'text-yellow-400' },
+    eliminated:    { label: 'Выбыли',           bg: 'bg-slate-500/20', text: 'text-slate-300' },
     withdrawn:     { label: 'Снялась',          bg: 'bg-muted',        text: 'text-muted-foreground' },
   };
   const sc = statusConfig[team.status] ?? statusConfig.pending;
@@ -122,7 +123,7 @@ const TeamDetail: React.FC = () => {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           {/* ── Team Header ───────────────────────────────────────────────── */}
-          <div className={`glass-card rounded-2xl p-5 sm:p-8 mb-8 ${team.status === 'withdrawn' ? 'opacity-80' : ''}`}>
+          <div className={`glass-card rounded-2xl p-5 sm:p-8 mb-8 ${(team.status === 'withdrawn' || team.status === 'eliminated') ? 'opacity-80' : ''}`}>
             <div className="flex items-start gap-6 mb-6 flex-wrap">
               {team.logo ? (
                 <img src={team.logo} alt={team.name} className="w-28 h-28 rounded-2xl object-cover flex-shrink-0" />
@@ -132,7 +133,7 @@ const TeamDetail: React.FC = () => {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h1 className={`font-display text-2xl sm:text-3xl font-bold text-foreground break-words ${team.status === 'withdrawn' ? 'line-through opacity-60' : ''}`}>{team.name}</h1>
+                <h1 className={`font-display text-2xl sm:text-3xl font-bold text-foreground break-words ${(team.status === 'withdrawn' || team.status === 'eliminated') ? 'line-through opacity-60' : ''}`}>{team.name}</h1>
                 <p className="text-muted-foreground font-heading">[{team.tag}]</p>
                 {team.titleText && (
                   <span className={`inline-flex items-center gap-1 mt-2 px-3 py-1 rounded text-xs font-heading ${titleClass}`}>

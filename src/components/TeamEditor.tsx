@@ -22,7 +22,7 @@ interface TeamEditorProps {
 }
 
 const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
-  const { data, addTeam, updateTeam, updateSettings } = useTournament();
+  const { data, addTeam, updateTeam } = useTournament();
   const existing = teamId ? data.teams.find(t => t.id === teamId) : null;
   const freePlayers = data.settings.freePlayers || [];
 
@@ -109,20 +109,6 @@ const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
       titleEmoji: titleEmoji.trim() || undefined,
       titleStyle,
     };
-    const nextTeams = existing
-      ? data.teams.map(t => (t.id === team.id ? team : t))
-      : [...data.teams, team];
-    const busyFreePlayerIds = new Set(
-      nextTeams.flatMap(t => t.players.map(player => player.freePlayerId).filter(Boolean) as string[])
-    );
-
-    updateSettings({
-      freePlayers: freePlayers.map(freePlayer => ({
-        ...freePlayer,
-        status: busyFreePlayerIds.has(freePlayer.id) ? 'busy' : 'free',
-      })),
-    });
-
     if (existing) updateTeam(team);
     else addTeam(team);
     onClose();
@@ -152,8 +138,9 @@ const TeamEditor: React.FC<TeamEditorProps> = ({ teamId, onClose }) => {
           <select className="w-full bg-background border rounded-lg p-3 text-foreground" value={status} onChange={e => setStatus(e.target.value as Team['status'])}>
             <option value="pending">Ожидается</option>
             <option value="confirmed">Подтверждена</option>
+            <option value="eliminated">Выбыли</option>
             <option value="disqualified">Дисквалифицирована</option>
-                <option value="withdrawn">Снялась</option>
+            <option value="withdrawn">Снялась</option>
           </select>
         </div>
         {status === 'disqualified' && (

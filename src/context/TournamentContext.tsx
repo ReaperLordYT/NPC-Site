@@ -227,6 +227,22 @@ function saveToLS(d: TournamentData) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(d)); } catch { /* quota */ }
 }
 
+const isTeamHoldingFreePlayers = (status: Team['status']) =>
+  status === 'pending' || status === 'confirmed';
+
+const syncFreePlayersByTeams = (freePlayers: SiteSettings['freePlayers'], teams: Team[]) => {
+  const busyFreePlayerIds = new Set(
+    teams
+      .filter(team => isTeamHoldingFreePlayers(team.status))
+      .flatMap(team => team.players.map(player => player.freePlayerId).filter(Boolean) as string[])
+  );
+
+  return freePlayers.map(freePlayer => ({
+    ...freePlayer,
+    status: busyFreePlayerIds.has(freePlayer.id) ? 'busy' : 'free',
+  }));
+};
+
 interface TournamentContextType {
   data: TournamentData;
   isAdmin: boolean;
@@ -370,9 +386,44 @@ const loadFromSupabase = useCallback(async () => {
   const updateSettings = (s: Partial<SiteSettings>) =>
     updateData(prev => ({ ...prev, settings: { ...prev.settings, ...s } }));
 
-  const addTeam = (team: Team) => updateData(prev => ({ ...prev, teams: [...prev.teams, team] }));
-  const updateTeam = (team: Team) => updateData(prev => ({ ...prev, teams: prev.teams.map(t => t.id === team.id ? team : t) }));
-  const deleteTeam = (id: string) => updateData(prev => ({ ...prev, teams: prev.teams.filter(t => t.id !== id) }));
+  const addTeam = (team: Team) =>
+    updateData(prev => {
+      const nextTeams = [...prev.teams, team];
+      return {
+        ...prev,
+        teams: nextTeams,
+        settings: {
+          ...prev.settings,
+          freePlayers: syncFreePlayersByTeams(prev.settings.freePlayers, nextTeams),
+        },
+      };
+    });
+
+  const updateTeam = (team: Team) =>
+    updateData(prev => {
+      const nextTeams = prev.teams.map(t => (t.id === team.id ? team : t));
+      return {
+        ...prev,
+        teams: nextTeams,
+        settings: {
+          ...prev.settings,
+          freePlayers: syncFreePlayersByTeams(prev.settings.freePlayers, nextTeams),
+        },
+      };
+    });
+
+  const deleteTeam = (id: string) =>
+    updateData(prev => {
+      const nextTeams = prev.teams.filter(t => t.id !== id);
+      return {
+        ...prev,
+        teams: nextTeams,
+        settings: {
+          ...prev.settings,
+          freePlayers: syncFreePlayersByTeams(prev.settings.freePlayers, nextTeams),
+        },
+      };
+    });
 
   const addNews = (news: NewsItem) => updateData(prev => ({ ...prev, news: [news, ...prev.news] }));
   const updateNews = (news: NewsItem) => updateData(prev => ({ ...prev, news: prev.news.map(n => n.id === news.id ? news : n) }));
@@ -446,12 +497,19 @@ const loadFromSupabase = useCallback(async () => {
   }, [data.groups, data.matches]);
 
   const withdrawTeam = (id: string, reason?: string) =>
-    updateData(prev => ({
-      ...prev,
-      teams: prev.teams.map(t =>
+    updateData(prev => {
+      const nextTeams = prev.teams.map(t =>
         t.id === id ? { ...t, status: 'withdrawn' as const, withdrawalReason: reason ?? '' } : t
-      ),
-    }));
+      );
+      return {
+        ...prev,
+        teams: nextTeams,
+        settings: {
+          ...prev.settings,
+          freePlayers: syncFreePlayersByTeams(prev.settings.freePlayers, nextTeams),
+        },
+      };
+    });
 
   const refreshBackups = useCallback(async () => {
     if (!isAdmin) return;

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Info, Edit2, Tv, Check, X, ChevronUp, ChevronDown, ChevronsUpDown, Filter, FilterX } from 'lucide-react';
+import { ExternalLink, Info, Edit2, Tv, Check, X, ChevronUp, ChevronDown, ChevronsUpDown, Filter, FilterX, CalendarDays, Clock3 } from 'lucide-react';
 import { formatDate } from '@/lib/dateFormat';
 import { TournamentMatch } from '@/types/tournament';
 import { Link } from 'react-router-dom';
@@ -65,12 +65,12 @@ function compareDateTimeAsc(a: TournamentMatch, b: TournamentMatch): number {
 
 const StatusBadge: React.FC<{ status: TournamentMatch['status'] }> = ({ status }) => {
   if (status === 'live')
-    return <span className="px-2 py-0.5 rounded-md text-xs font-heading whitespace-nowrap bg-red-500/20 text-red-400 animate-pulse">🔴 LIVE</span>;
+    return <span className="px-2 py-0.5 rounded-md text-xs font-heading whitespace-nowrap bg-red-500/20 text-red-400 animate-pulse">LIVE</span>;
   if (status === 'completed')
-    return <span className="px-2 py-0.5 rounded-md text-xs font-heading whitespace-nowrap bg-green-500/20 text-green-400">✅ Завершён</span>;
+    return <span className="px-2 py-0.5 rounded-md text-xs font-heading whitespace-nowrap bg-green-500/20 text-green-400">Завершён</span>;
   if (status === 'cancelled')
-    return <span className="px-2 py-0.5 rounded-md text-xs font-heading whitespace-nowrap bg-red-900/20 text-red-400/70 line-through">❌ Отменён</span>;
-  return <span className="px-2 py-0.5 rounded-md text-xs font-heading whitespace-nowrap bg-muted text-muted-foreground">⏳ Запланирован</span>;
+    return <span className="px-2 py-0.5 rounded-md text-xs font-heading whitespace-nowrap bg-red-900/20 text-red-400/70 line-through">Отменён</span>;
+  return <span className="px-2 py-0.5 rounded-md text-xs font-heading whitespace-nowrap bg-muted text-muted-foreground">Запланирован</span>;
 };
 
 const SortIcon: React.FC<{ col: SortCol; active: SortCol | null; dir: SortDir }> = ({ col, active, dir }) => {
@@ -277,8 +277,14 @@ const Schedule: React.FC = () => {
                 <button onClick={() => setSelectedMatch(null)} className="text-muted-foreground hover:text-foreground">✕</button>
               </div>
               <div className="flex items-center justify-center gap-3 mb-4 text-sm text-muted-foreground flex-wrap">
-                <span>📅 {formatDate(selectedMatchData.scheduledDate) || 'Не назначена'}</span>
-                <span>⏰ {selectedMatchData.scheduledTime || 'Не назначено'}</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarDays size={14} className="text-primary/80" />
+                  {formatDate(selectedMatchData.scheduledDate) || 'Не назначена'}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock3 size={14} className="text-primary/80" />
+                  {selectedMatchData.scheduledTime || 'Не назначено'}
+                </span>
                 <span className="text-primary font-heading">{selectedMatchData.format}</span>
                 <span className="text-muted-foreground font-heading">{stageLabels[selectedMatchData.stage]}</span>
                 <StatusBadge status={selectedMatchData.status} />
@@ -394,7 +400,7 @@ const Schedule: React.FC = () => {
                       <td className="py-2 px-4">
                         <select className="bg-background border border-border rounded-lg p-1.5 text-foreground text-xs w-full focus:outline-none focus:border-primary" value={editForm.status} onChange={e => setEditForm(p => ({ ...p, status: e.target.value as any }))}>
                           <option value="scheduled">Запланирован</option>
-                          <option value="live">🔴 LIVE</option>
+                          <option value="live">LIVE</option>
                           <option value="completed">Завершён</option>
                           <option value="cancelled">Отменён</option>
                         </select>
