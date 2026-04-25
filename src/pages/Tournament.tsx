@@ -225,6 +225,7 @@ const PORT_R = 6;  // radius of connection port circles
 interface NodeCardProps {
   match: MatchNode;
   blockNumber: number;
+  blockIndexByNumber: Record<number, string>;
   isAdmin: boolean;
   isEditing: boolean;
   connectMode: boolean;
@@ -235,17 +236,31 @@ interface NodeCardProps {
   onStartConnect: (fromId: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
+  onOpenDetails: (match: TournamentMatch, blockNumber: number) => void;
+  onOpenByBlockNumber: (blockNumber: number) => void;
 }
 
 const NodeCard: React.FC<NodeCardProps> = ({
-  match, blockNumber, isAdmin, isEditing, connectMode, connectingFrom,
-  zoom, onDragEnd, onWin, onStartConnect, onDelete, onEdit,
+  match, blockNumber, blockIndexByNumber, isAdmin, isEditing, connectMode, connectingFrom,
+  zoom, onDragEnd, onWin, onStartConnect, onDelete, onEdit, onOpenDetails, onOpenByBlockNumber,
 }) => {
   const { getTeamById } = useTournament();
   const t1 = getTeamById(match.team1Id);
   const t2 = getTeamById(match.team2Id);
   const t1Name = t1?.name || decodeSlotLabel(match.team1Id, match.team1Label) || 'TBD';
   const t2Name = t2?.name || decodeSlotLabel(match.team2Id, match.team2Label) || 'TBD';
+  const t1IsLabel = !t1 && !!decodeSlotLabel(match.team1Id, match.team1Label);
+  const t2IsLabel = !t2 && !!decodeSlotLabel(match.team2Id, match.team2Label);
+
+  const parseReferencedBlock = (value: string): number | null => {
+    const m = value.match(/блока?\s*(\d+)/i) || value.match(/block\s*(\d+)/i);
+    if (!m) return null;
+    const n = Number(m[1]);
+    if (!Number.isFinite(n)) return null;
+    return blockIndexByNumber[n] ? n : null;
+  };
+  const t1Ref = parseReferencedBlock(t1Name);
+  const t2Ref = parseReferencedBlock(t2Name);
 
   // Determine required wins from format (e.g. Bo3 -> 2)
   const nodeWinsRequired = React.useMemo(() => {
@@ -333,6 +348,9 @@ const NodeCard: React.FC<NodeCardProps> = ({
       }}
       className={`rounded-2xl overflow-hidden border shadow-xl ${stageColor} ${cancelled ? 'opacity-40' : ''} ${match.status === 'live' ? 'ring-2 ring-red-500/70' : ''} ${match.status === 'completed' ? 'ring-2 ring-green-500/55 border-green-500/65' : ''} bg-card/95 transition-shadow ${dragging ? 'shadow-2xl shadow-primary/30' : ''} ${connectingFrom === match.id ? 'ring-2 ring-primary' : ''} ${!match.team1Id && !match.team2Id ? 'border-dashed opacity-75' : ''}`}
       onMouseDown={onMouseDown}
+      onClick={() => {
+        if (!isEditing && !connectMode) onOpenDetails(match, blockNumber);
+      }}
       onDoubleClick={() => {
         if (isAdmin && isEditing && !connectMode) onEdit(match.id);
       }}
@@ -386,9 +404,23 @@ const NodeCard: React.FC<NodeCardProps> = ({
             ? <img src={t1.logo} alt="" className="w-7 h-7 rounded object-cover flex-shrink-0" />
             : <div className="w-7 h-7 rounded bg-muted flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-muted-foreground">{t1?.tag?.[0] || '?'}</div>
           }
-          <span className={`text-base font-heading truncate ${t1Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
-            {t1Name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
-          </span>
+          {t1IsLabel && t1Ref ? (
+            <button
+              data-no-drag="1"
+              className="text-base font-heading truncate text-primary hover:underline text-left"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenByBlockNumber(t1Ref);
+              }}
+              title={`Открыть блок ${t1Ref}`}
+            >
+              {t1Name}
+            </button>
+          ) : (
+            <span className={`text-base font-heading truncate ${t1Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
+              {t1Name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1.5 ml-1 flex-shrink-0">
           {t1Win && (isFinal ? <Trophy size={13} className="text-yellow-400" /> : <Crown size={12} className="text-yellow-400" />)}
@@ -411,9 +443,23 @@ const NodeCard: React.FC<NodeCardProps> = ({
             ? <img src={t2.logo} alt="" className="w-7 h-7 rounded object-cover flex-shrink-0" />
             : <div className="w-7 h-7 rounded bg-muted flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-muted-foreground">{t2?.tag?.[0] || '?'}</div>
           }
-          <span className={`text-base font-heading truncate ${t2Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
-            {t2Name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
-          </span>
+          {t2IsLabel && t2Ref ? (
+            <button
+              data-no-drag="1"
+              className="text-base font-heading truncate text-primary hover:underline text-left"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenByBlockNumber(t2Ref);
+              }}
+              title={`Открыть блок ${t2Ref}`}
+            >
+              {t2Name}
+            </button>
+          ) : (
+            <span className={`text-base font-heading truncate ${t2Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
+              {t2Name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1.5 ml-1 flex-shrink-0">
           {t2Win && (isFinal ? <Trophy size={13} className="text-yellow-400" /> : <Crown size={12} className="text-yellow-400" />)}
@@ -504,7 +550,9 @@ function autoLayout(matches: TournamentMatch[]): Record<string, { x: number; y: 
 }
 
 // ─── Main Node Editor ────────────────────────────────────────────────────────
-const NodeBracketEditor: React.FC = () => {
+const NodeBracketEditor: React.FC<{
+  onOpenMatch: (match: TournamentMatch, blockNumber: number) => void;
+}> = ({ onOpenMatch }) => {
   const { data, isAdmin, isEditing, updateMatch, deleteMatch, updateBracketConnections } = useTournament();
   // Stable ref to updateMatch to use inside effects without causing infinite loops
   const updateMatchRef = useRef(updateMatch);
@@ -546,6 +594,13 @@ const NodeBracketEditor: React.FC = () => {
     sorted.forEach((m, idx) => { map[m.id] = idx + 1; });
     return map;
   }, [bracketMatches, positions]);
+  const blockMatchByNumber = React.useMemo(() => {
+    const map: Record<number, string> = {};
+    Object.entries(blockNumbers).forEach(([matchId, num]) => {
+      map[num] = matchId;
+    });
+    return map;
+  }, [blockNumbers]);
 
   useEffect(() => {
     setConnections(data.bracketConnections || []);
@@ -727,6 +782,17 @@ const NodeBracketEditor: React.FC = () => {
     bracketMatches.forEach(m => {
       const pos = autoPos[m.id];
       if (pos) updateMatch({ ...m, nodeX: Math.round(pos.x), nodeY: Math.round(pos.y) });
+    });
+  };
+
+  const centerOnMatch = (matchId: string) => {
+    if (!canvasRef.current) return;
+    const pos = positions[matchId];
+    if (!pos) return;
+    const container = canvasRef.current.getBoundingClientRect();
+    setPan({
+      x: Math.round(container.width / 2 - (pos.x + NODE_W / 2) * zoom),
+      y: Math.round(container.height / 2 - (pos.y + NODE_H / 2) * zoom),
     });
   };
 
@@ -978,6 +1044,7 @@ const NodeBracketEditor: React.FC = () => {
                   match={node}
                   isAdmin={isAdmin}
                   isEditing={isEditing}
+                  blockIndexByNumber={blockMatchByNumber}
                   connectMode={connectMode}
                   connectingFrom={connectingFrom}
                   blockNumber={blockNumbers[match.id] ?? 0}
@@ -987,6 +1054,17 @@ const NodeBracketEditor: React.FC = () => {
                   onStartConnect={handleStartConnect}
                   onDelete={deleteMatch}
                   onEdit={handleEditNode}
+                  onOpenDetails={(openedMatch, blockNumber) => {
+                    onOpenMatch(openedMatch, blockNumber);
+                  }}
+                  onOpenByBlockNumber={(targetBlock) => {
+                    const targetMatchId = blockMatchByNumber[targetBlock];
+                    if (!targetMatchId) return;
+                    const targetMatch = data.matches.find(m => m.id === targetMatchId);
+                    if (!targetMatch) return;
+                    centerOnMatch(targetMatchId);
+                    onOpenMatch(targetMatch, targetBlock);
+                  }}
                 />
               );
             })}
@@ -1185,6 +1263,7 @@ const Tournament: React.FC = () => {
   const [selectedTeamForGroup, setSelectedTeamForGroup] = useState('');
   const [showNewMatch, setShowNewMatch] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<TournamentMatch | null>(null);
+  const [selectedMatchBlockNumber, setSelectedMatchBlockNumber] = useState<number | null>(null);
   const [newMatch, setNewMatch] = useState({
     team1Id: '', team2Id: '', format: 'Bo1' as TournamentMatch['format'],
     team1Label: '', team2Label: '',
@@ -1581,7 +1660,14 @@ const Tournament: React.FC = () => {
                             </div>
                             <div className="space-y-2">
                               {groupMatchesByRound[round].map(match => (
-                                <MatchCard key={match.id} match={match} onOpenDetails={setSelectedMatch} />
+                                <MatchCard
+                                  key={match.id}
+                                  match={match}
+                                  onOpenDetails={(m) => {
+                                    setSelectedMatchBlockNumber(null);
+                                    setSelectedMatch(m);
+                                  }}
+                                />
                               ))}
                             </div>
                           </div>
@@ -1642,7 +1728,12 @@ const Tournament: React.FC = () => {
               </div>
             )}
 
-            <NodeBracketEditor />
+            <NodeBracketEditor
+              onOpenMatch={(match, blockNumber) => {
+                setSelectedMatchBlockNumber(blockNumber);
+                setSelectedMatch(match);
+              }}
+            />
 
             {bracketByStageAndRound.length > 0 && (
               <div className="space-y-4">
@@ -1668,7 +1759,14 @@ const Tournament: React.FC = () => {
                               .slice()
                               .sort((a, b) => (a.scheduledTime || '').localeCompare(b.scheduledTime || ''))
                               .map(match => (
-                                <MatchCard key={match.id} match={match} onOpenDetails={setSelectedMatch} />
+                                <MatchCard
+                                  key={match.id}
+                                  match={match}
+                                  onOpenDetails={(m) => {
+                                    setSelectedMatchBlockNumber(null);
+                                    setSelectedMatch(m);
+                                  }}
+                                />
                               ))}
                           </div>
                         </div>
@@ -1683,7 +1781,16 @@ const Tournament: React.FC = () => {
             {isAdmin && isEditing && bracketMatches.length > 0 && (
               <div className="space-y-2">
                 <h4 className="font-heading font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-3">Все матчи (список для редактирования)</h4>
-                {bracketMatches.map(m => <MatchCard key={m.id} match={m} onOpenDetails={setSelectedMatch} />)}
+                {bracketMatches.map(m => (
+                  <MatchCard
+                    key={m.id}
+                    match={m}
+                    onOpenDetails={(opened) => {
+                      setSelectedMatchBlockNumber(null);
+                      setSelectedMatch(opened);
+                    }}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -1698,6 +1805,11 @@ const Tournament: React.FC = () => {
               <div className="flex flex-wrap gap-2 mb-4">
                 <span className="px-2 py-1 rounded-md text-xs font-heading bg-primary/10 text-primary">{STAGE_LABELS[selectedMatch.stage]}</span>
                 <span className="px-2 py-1 rounded-md text-xs font-heading bg-muted/60 text-foreground">{selectedMatch.format}</span>
+                {selectedMatchBlockNumber != null && (
+                  <span className="px-2 py-1 rounded-md text-xs font-heading bg-background/80 border border-primary/40 text-foreground">
+                    Блок {selectedMatchBlockNumber}
+                  </span>
+                )}
                 {selectedMatch.round && <span className="px-2 py-1 rounded-md text-xs font-heading bg-muted/60 text-foreground">Раунд {selectedMatch.round}</span>}
               </div>
               <div className="rounded-xl border border-border/40 bg-background/40 p-4 mb-4">
