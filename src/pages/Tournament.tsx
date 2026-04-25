@@ -2,10 +2,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, RefreshCw, Tv, Edit2, Check, X, Trophy, Crown, Link, Move } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Tv, Edit2, Check, X, Trophy, Crown, Link, Move, Circle, Triangle, HelpCircle } from 'lucide-react';
 import { TournamentMatch, Group, BracketConnection } from '@/types/tournament';
 import { formatDate } from '@/lib/dateFormat';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 
 const STAGE_LABELS: Record<TournamentMatch['stage'], string> = {
   group: 'Групповой этап',
@@ -188,8 +188,8 @@ interface MatchNode extends TournamentMatch {
 interface NodeConnection extends BracketConnection {}
 
 // ─── Card dimensions ─────────────────────────────────────────────────────────
-const NODE_W = 272;
-const NODE_H = 96; // header(28) + team(34) + divider(1) + team(34) ≈ 97
+const NODE_W = 300;
+const NODE_H = 108; // Increased for better readability
 const PORT_R = 6;  // radius of connection port circles
 
 // ─── Node Card (draggable) ───────────────────────────────────────────────────
@@ -299,7 +299,7 @@ const NodeCard: React.FC<NodeCardProps> = ({
         cursor: connectMode ? 'pointer' : isEditing ? (dragging ? 'grabbing' : 'grab') : 'default',
         userSelect: 'none',
       }}
-      className={`rounded-xl overflow-hidden border shadow-lg ${stageColor} ${cancelled ? 'opacity-40' : ''} ${match.status === 'live' ? 'ring-1 ring-red-500/60' : ''} ${match.status === 'completed' ? 'ring-1 ring-green-500/45 border-green-500/55' : ''} bg-card transition-shadow ${dragging ? 'shadow-2xl shadow-primary/20' : ''} ${connectingFrom === match.id ? 'ring-2 ring-primary' : ''} ${!match.team1Id && !match.team2Id ? 'border-dashed opacity-75' : ''}`}
+      className={`rounded-xl overflow-hidden border shadow-xl ${stageColor} ${cancelled ? 'opacity-40' : ''} ${match.status === 'live' ? 'ring-2 ring-red-500/70' : ''} ${match.status === 'completed' ? 'ring-2 ring-green-500/55 border-green-500/65' : ''} bg-card/95 transition-shadow ${dragging ? 'shadow-2xl shadow-primary/30' : ''} ${connectingFrom === match.id ? 'ring-2 ring-primary' : ''} ${!match.team1Id && !match.team2Id ? 'border-dashed opacity-75' : ''}`}
       onMouseDown={onMouseDown}
       onDoubleClick={() => {
         if (isAdmin && isEditing && !connectMode) onEdit(match.id);
@@ -311,7 +311,7 @@ const NodeCard: React.FC<NodeCardProps> = ({
           {isEditing && !connectMode && (
             <Move size={11} className="text-muted-foreground/40 flex-shrink-0" />
           )}
-          <span className="text-[10px] font-heading text-muted-foreground tracking-wider">{match.format}</span>
+          <span className="text-[11px] font-heading text-muted-foreground tracking-wider">{match.format}</span>
           <span className={`text-[9px] font-heading px-1.5 py-0.5 rounded-full ${
             match.stage === 'final' ? 'bg-yellow-400/20 text-yellow-300' :
             match.stage === 'playoff-upper' ? 'bg-blue-500/20 text-blue-300' :
@@ -351,13 +351,13 @@ const NodeCard: React.FC<NodeCardProps> = ({
             ? <img src={t1.logo} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
             : <div className="w-6 h-6 rounded bg-muted flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-muted-foreground">{t1?.tag?.[0] || '?'}</div>
           }
-          <span className={`text-sm font-heading truncate ${t1Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
+          <span className={`text-[15px] font-heading truncate ${t1Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
             {t1?.name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
           </span>
         </div>
         <div className="flex items-center gap-1.5 ml-1 flex-shrink-0">
           {t1Win && (isFinal ? <Trophy size={13} className="text-yellow-400" /> : <Crown size={12} className="text-yellow-400" />)}
-          <span className={`text-sm font-heading font-bold tabular-nums w-4 text-right ${t1Win ? 'text-primary' : 'text-muted-foreground/40'}`}>
+          <span className={`text-base font-heading font-bold tabular-nums w-5 text-right ${t1Win ? 'text-primary' : 'text-muted-foreground/40'}`}>
             {match.result != null ? match.result.team1Score : '—'}
           </span>
         </div>
@@ -376,13 +376,13 @@ const NodeCard: React.FC<NodeCardProps> = ({
             ? <img src={t2.logo} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
             : <div className="w-6 h-6 rounded bg-muted flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-muted-foreground">{t2?.tag?.[0] || '?'}</div>
           }
-          <span className={`text-sm font-heading truncate ${t2Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
+          <span className={`text-[15px] font-heading truncate ${t2Win ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
             {t2?.name || <span className="italic text-muted-foreground/40 text-xs">TBD</span>}
           </span>
         </div>
         <div className="flex items-center gap-1.5 ml-1 flex-shrink-0">
           {t2Win && (isFinal ? <Trophy size={13} className="text-yellow-400" /> : <Crown size={12} className="text-yellow-400" />)}
-          <span className={`text-sm font-heading font-bold tabular-nums w-4 text-right ${t2Win ? 'text-primary' : 'text-muted-foreground/40'}`}>
+          <span className={`text-base font-heading font-bold tabular-nums w-5 text-right ${t2Win ? 'text-primary' : 'text-muted-foreground/40'}`}>
             {match.result != null ? match.result.team2Score : '—'}
           </span>
         </div>
@@ -414,6 +414,13 @@ const NodeCard: React.FC<NodeCardProps> = ({
 function bezierPath(x1: number, y1: number, x2: number, y2: number): string {
   const dx = Math.abs(x2 - x1) * 0.5;
   return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+}
+
+function markerToSymbol(marker?: BracketConnection['marker']): string {
+  if (marker === 'x') return '✕';
+  if (marker === 'o') return '○';
+  if (marker === 'triangle') return '△';
+  return '';
 }
 
 // ─── Node positions are stored directly in each match (nodeX/nodeY fields in data.json)
@@ -490,6 +497,8 @@ const NodeBracketEditor: React.FC = () => {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [panning, setPanning] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [userAdjustedView, setUserAdjustedView] = useState(false);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [nodeEditState, setNodeEditState] = useState<MatchEditState | null>(null);
   const panStart = useRef<{ mx: number; my: number; ox: number; oy: number } | null>(null);
@@ -502,6 +511,35 @@ const NodeBracketEditor: React.FC = () => {
   useEffect(() => {
     setConnections(data.bracketConnections || []);
   }, [data.bracketConnections]);
+
+  const fitToView = useCallback(() => {
+    if (!canvasRef.current || bracketMatches.length === 0) return;
+    const container = canvasRef.current.getBoundingClientRect();
+    const xValues: number[] = [];
+    const yValues: number[] = [];
+    bracketMatches.forEach(m => {
+      const pos = positions[m.id];
+      if (!pos) return;
+      xValues.push(pos.x, pos.x + NODE_W);
+      yValues.push(pos.y, pos.y + NODE_H);
+    });
+    if (xValues.length === 0 || yValues.length === 0) return;
+    const minX = Math.min(...xValues);
+    const maxX = Math.max(...xValues);
+    const minY = Math.min(...yValues);
+    const maxY = Math.max(...yValues);
+    const pad = 80;
+    const contentW = Math.max(1, maxX - minX + pad * 2);
+    const contentH = Math.max(1, maxY - minY + pad * 2);
+    const nextZoom = Math.min(1.55, Math.max(0.45, Math.min(container.width / contentW, container.height / contentH)));
+    const targetCenterX = (minX + maxX) / 2;
+    const targetCenterY = (minY + maxY) / 2;
+    setZoom(+nextZoom.toFixed(2));
+    setPan({
+      x: Math.round(container.width / 2 - targetCenterX * nextZoom),
+      y: Math.round(container.height / 2 - targetCenterY * nextZoom),
+    });
+  }, [bracketMatches, positions]);
 
   // Sync positions from match data (nodeX/nodeY). Auto-layout only for matches with no saved position.
   useEffect(() => {
@@ -582,6 +620,8 @@ const NodeBracketEditor: React.FC = () => {
         fromMatchId: connectingFrom,
         toMatchId: fromId,
         toSlot,
+        marker: 'x',
+        label: '',
       };
       const next = [...existing, newConn];
       persistConnections(next);
@@ -627,15 +667,21 @@ const NodeBracketEditor: React.FC = () => {
   };
 
   const handleCanvasWheel = (e: React.WheelEvent) => {
-    if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
-    const delta = e.deltaY < 0 ? 0.1 : -0.1;
+    e.stopPropagation();
+    setUserAdjustedView(true);
+    if (e.shiftKey) {
+      setPan(prev => ({ x: prev.x - e.deltaY * 0.5, y: prev.y - e.deltaX * 0.5 }));
+      return;
+    }
+    const delta = e.deltaY < 0 ? 0.08 : -0.08;
     setZoom(prev => Math.min(2.2, Math.max(0.45, +(prev + delta).toFixed(2))));
   };
 
   const handleAutoLayout = () => {
     const autoPos = autoLayout(bracketMatches);
     setPositions(autoPos);
+    setUserAdjustedView(false);
     // Persist positions to data.json for all bracket matches
     bracketMatches.forEach(m => {
       const pos = autoPos[m.id];
@@ -647,6 +693,7 @@ const NodeBracketEditor: React.FC = () => {
   const onCanvasMouseDown = (e: React.MouseEvent) => {
     if (e.button === 1 || e.button === 2) {
       e.preventDefault();
+      setUserAdjustedView(true);
       panStart.current = { mx: e.clientX, my: e.clientY, ox: pan.x, oy: pan.y };
       setPanning(true);
     }
@@ -669,6 +716,21 @@ const NodeBracketEditor: React.FC = () => {
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
   }, [panning]);
 
+  useEffect(() => {
+    if (userAdjustedView) return;
+    fitToView();
+  }, [fitToView, userAdjustedView]);
+
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const onNativeWheel = (evt: WheelEvent) => {
+      evt.preventDefault();
+    };
+    el.addEventListener('wheel', onNativeWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onNativeWheel);
+  }, []);
+
   // Compute SVG connection paths
   const connectionPaths = connections.map(conn => {
     const from = positions[conn.fromMatchId];
@@ -688,8 +750,10 @@ const NodeBracketEditor: React.FC = () => {
                 : stageFrom === 'final'         ? 'rgba(250,200,50,0.55)'
                 : 'rgba(255,255,255,0.25)';
 
-    return { ...conn, path: bezierPath(x1, y1, x2, y2), color };
-  }).filter(Boolean) as (NodeConnection & { path: string; color: string })[];
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2;
+    return { ...conn, path: bezierPath(x1, y1, x2, y2), color, midX, midY };
+  }).filter(Boolean) as (NodeConnection & { path: string; color: string; midX: number; midY: number })[];
 
   const isEmpty = bracketMatches.length === 0;
 
@@ -719,13 +783,21 @@ const NodeBracketEditor: React.FC = () => {
             <RefreshCw size={13} /> Авто-расстановка
           </button>
           <div className="flex items-center gap-1 border border-border rounded-lg px-2 py-1">
-            <button onClick={() => setZoom(z => Math.max(0.45, +(z - 0.1).toFixed(2)))} className="text-xs text-muted-foreground hover:text-foreground px-1" title="Уменьшить">−</button>
+            <button onClick={() => { setUserAdjustedView(true); setZoom(z => Math.max(0.45, +(z - 0.1).toFixed(2))); }} className="text-xs text-muted-foreground hover:text-foreground px-1" title="Уменьшить">−</button>
             <span className="text-xs text-muted-foreground min-w-12 text-center">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom(z => Math.min(2.2, +(z + 0.1).toFixed(2)))} className="text-xs text-muted-foreground hover:text-foreground px-1" title="Увеличить">+</button>
-            <button onClick={() => setZoom(1)} className="text-xs text-primary hover:underline px-1" title="Сбросить масштаб">1:1</button>
+            <button onClick={() => { setUserAdjustedView(true); setZoom(z => Math.min(2.2, +(z + 0.1).toFixed(2))); }} className="text-xs text-muted-foreground hover:text-foreground px-1" title="Увеличить">+</button>
+            <button onClick={() => { setUserAdjustedView(true); setZoom(1); }} className="text-xs text-primary hover:underline px-1" title="Сбросить масштаб">1:1</button>
+            <button onClick={() => { setUserAdjustedView(false); fitToView(); }} className="text-xs text-primary hover:underline px-1" title="Вписать сетку">Fit</button>
           </div>
+          <button
+            onClick={() => setShowHelp(s => !s)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-heading border transition-all ${showHelp ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted-foreground hover:text-foreground'}`}
+            title="Как пользоваться сеткой"
+          >
+            <HelpCircle size={13} /> ?
+          </button>
           <span className="text-xs text-muted-foreground/50 ml-auto hidden md:block">
-            Ctrl + колесо / +/- — масштаб · ПКМ / средняя — панорама
+            Колесо — масштаб · Shift+колесо / ПКМ / средняя — панорама
           </span>
         </div>
       )}
@@ -735,15 +807,25 @@ const NodeBracketEditor: React.FC = () => {
         <span className="flex items-center gap-1"><span className="w-3 h-0.5 rounded bg-blue-400/70 inline-block" /> Верхняя сетка</span>
         <span className="flex items-center gap-1"><span className="w-3 h-0.5 rounded bg-red-400/70 inline-block" /> Нижняя сетка</span>
         <span className="flex items-center gap-1"><span className="w-3 h-0.5 rounded bg-yellow-400/70 inline-block" /> Финал</span>
+        <span className="flex items-center gap-1">✕ / ○ / △ — метки переходов на линиях</span>
         {isAdmin && isEditing && <span className="flex items-center gap-1"><span className="w-3 h-0.5 rounded bg-foreground/30 inline-block" /> Кликни команду = победитель</span>}
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span className="font-heading">Масштаб сетки:</span>
-        <button onClick={() => setZoom(z => Math.max(0.45, +(z - 0.1).toFixed(2)))} className="px-2 py-0.5 border border-border rounded hover:text-foreground">−</button>
+        <button onClick={() => { setUserAdjustedView(true); setZoom(z => Math.max(0.45, +(z - 0.1).toFixed(2))); }} className="px-2 py-0.5 border border-border rounded hover:text-foreground">−</button>
         <span className="min-w-12 text-center">{Math.round(zoom * 100)}%</span>
-        <button onClick={() => setZoom(z => Math.min(2.2, +(z + 0.1).toFixed(2)))} className="px-2 py-0.5 border border-border rounded hover:text-foreground">+</button>
-        <button onClick={() => setZoom(1)} className="text-primary hover:underline">Сброс</button>
+        <button onClick={() => { setUserAdjustedView(true); setZoom(z => Math.min(2.2, +(z + 0.1).toFixed(2))); }} className="px-2 py-0.5 border border-border rounded hover:text-foreground">+</button>
+        <button onClick={() => { setUserAdjustedView(true); setZoom(1); }} className="text-primary hover:underline">Сброс</button>
+        <button onClick={() => { setUserAdjustedView(false); fitToView(); }} className="text-primary hover:underline">Вписать</button>
       </div>
+      {showHelp && (
+        <div className="glass-card rounded-xl p-4 border border-primary/20 text-sm text-muted-foreground space-y-1">
+          <p><span className="text-foreground font-heading">Колесо мыши</span> — масштаб сетки внутри блока (страница не зумится).</p>
+          <p><span className="text-foreground font-heading">Shift + колесо</span>, <span className="text-foreground font-heading">ПКМ</span> или <span className="text-foreground font-heading">средняя кнопка</span> — перемещение по канвасу.</p>
+          <p><span className="text-foreground font-heading">Fit</span> — автоматически вписать сетку в окно.</p>
+          <p><span className="text-foreground font-heading">В режиме редактирования</span>: перетаскивай блоки, двойной клик по блоку — редактирование, кнопка «Соединить узлы» — связь матчей.</p>
+        </div>
+      )}
 
       {/* Canvas */}
       <div
@@ -781,11 +863,44 @@ const NodeBracketEditor: React.FC = () => {
                   <path d={conn.path} fill="none" stroke={conn.color} strokeWidth="6" strokeOpacity="0.15" strokeLinecap="round" />
                   {/* Main line */}
                   <path d={conn.path} fill="none" stroke={conn.color} strokeWidth="2" strokeLinecap="round" />
+                  {(conn.label || conn.marker && conn.marker !== 'none') && (
+                    <foreignObject
+                      x={conn.midX - 70}
+                      y={conn.midY - 30}
+                      width="140"
+                      height="28"
+                      style={{ pointerEvents: 'none' }}
+                    >
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 6,
+                          minWidth: 100,
+                          maxWidth: 140,
+                          margin: '0 auto',
+                          padding: '3px 8px',
+                          borderRadius: 999,
+                          fontSize: 11,
+                          color: 'rgba(255,255,255,0.9)',
+                          background: 'rgba(10,14,28,0.72)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          overflow: 'hidden',
+                          whiteSpace: 'nowrap',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {conn.marker && conn.marker !== 'none' && <span>{markerToSymbol(conn.marker)}</span>}
+                        {conn.label && <span>{conn.label}</span>}
+                      </div>
+                    </foreignObject>
+                  )}
                   {/* Delete button on hover — midpoint */}
                   {isAdmin && isEditing && (
                     <foreignObject
-                      x={(() => { const pts = conn.path.match(/[\d.]+/g)!.map(Number); return (pts[0] + pts[6]) / 2 - 8; })()}
-                      y={(() => { const pts = conn.path.match(/[\d.]+/g)!.map(Number); return (pts[1] + pts[7]) / 2 - 8; })()}
+                      x={conn.midX - 8}
+                      y={conn.midY + 8}
                       width="16" height="16"
                       style={{ pointerEvents: 'all' }}
                     >
@@ -911,11 +1026,48 @@ const NodeBracketEditor: React.FC = () => {
 
       {/* Connection list for deleting */}
       {isAdmin && isEditing && connections.length > 0 && (
-        <div className="text-xs text-muted-foreground/60 font-heading">
-          {connections.length} соединений.{' '}
-          <button onClick={() => persistConnections([])} className="text-destructive hover:underline">
-            Сбросить все
-          </button>
+        <div className="space-y-2">
+          <div className="text-xs text-muted-foreground/60 font-heading">
+            {connections.length} соединений.{' '}
+            <button onClick={() => persistConnections([])} className="text-destructive hover:underline">
+              Сбросить все
+            </button>
+          </div>
+          <div className="space-y-2">
+            {connections.map(conn => (
+              <div key={conn.id} className="grid grid-cols-1 md:grid-cols-[160px_150px_1fr_auto] gap-2 items-center rounded-lg border border-border/40 bg-background/20 px-3 py-2">
+                <span className="text-xs text-muted-foreground truncate">{conn.fromMatchId} → {conn.toMatchId}</span>
+                <select
+                  className="bg-background border border-border rounded-lg p-1.5 text-foreground text-xs"
+                  value={conn.marker || 'none'}
+                  onChange={e => {
+                    const marker = e.target.value as NodeConnection['marker'];
+                    persistConnections(connections.map(c => c.id === conn.id ? { ...c, marker } : c));
+                  }}
+                >
+                  <option value="none">Без символа</option>
+                  <option value="x">✕ Поражение</option>
+                  <option value="o">○ Альтернативно</option>
+                  <option value="triangle">△ Следующий шаг</option>
+                </select>
+                <input
+                  className="bg-background border border-border rounded-lg p-1.5 text-foreground text-xs"
+                  placeholder="Текст на линии (напр. Проигравший 11)"
+                  value={conn.label || ''}
+                  onChange={e => {
+                    const label = e.target.value;
+                    persistConnections(connections.map(c => c.id === conn.id ? { ...c, label } : c));
+                  }}
+                />
+                <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                  {(conn.marker === 'x') && <X size={12} />}
+                  {(conn.marker === 'o') && <Circle size={12} />}
+                  {(conn.marker === 'triangle') && <Triangle size={12} />}
+                  {conn.marker === 'none' || !conn.marker ? '—' : markerToSymbol(conn.marker)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -974,8 +1126,12 @@ const Tournament: React.FC = () => {
     addGroup, updateGroup, deleteGroup, generateGroupMatches,
     addMatch, deleteMatch, getTeamById, getGroupStandings,
   } = useTournament();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const fallbackTab = data.settings.tournamentNavDefaultTab === 'bracket' ? 'bracket' : 'groups';
+  const initialTab = tabParam === 'bracket' || tabParam === 'groups' ? tabParam : fallbackTab;
 
-  const [activeTab, setActiveTab] = useState<'groups' | 'bracket'>('groups');
+  const [activeTab, setActiveTab] = useState<'groups' | 'bracket'>(initialTab);
   const [newGroupName, setNewGroupName] = useState('');
   const [selectedGroupForTeam, setSelectedGroupForTeam] = useState('');
   const [selectedTeamForGroup, setSelectedTeamForGroup] = useState('');
@@ -1041,6 +1197,20 @@ const Tournament: React.FC = () => {
   };
 
   const bracketMatches = data.matches.filter(m => m.stage !== 'group');
+  const bracketByStageAndRound = React.useMemo(() => {
+    const stageOrder: TournamentMatch['stage'][] = ['playoff-upper', 'playoff-lower', 'final'];
+    return stageOrder.map(stage => {
+      const stageMatches = bracketMatches.filter(m => m.stage === stage);
+      const byRound = stageMatches.reduce<Record<number, TournamentMatch[]>>((acc, match) => {
+        const round = match.round || 1;
+        if (!acc[round]) acc[round] = [];
+        acc[round].push(match);
+        return acc;
+      }, {});
+      const rounds = Object.keys(byRound).map(Number).sort((a, b) => a - b);
+      return { stage, rounds, byRound };
+    }).filter(s => s.rounds.length > 0);
+  }, [bracketMatches]);
   const teamsNotInGroups = data.teams.filter(t => !data.groups.some(g => g.teamIds.includes(t.id)));
   const selectedT1 = selectedMatch ? getTeamById(selectedMatch.team1Id) : null;
   const selectedT2 = selectedMatch ? getTeamById(selectedMatch.team2Id) : null;
@@ -1151,6 +1321,15 @@ const Tournament: React.FC = () => {
     </div>
   );
 
+  useEffect(() => {
+    const qTab = searchParams.get('tab');
+    if (qTab === 'groups' || qTab === 'bracket') {
+      setActiveTab(qTab);
+      return;
+    }
+    setActiveTab(fallbackTab);
+  }, [searchParams, fallbackTab]);
+
   return (
     <PageLayout>
       <div className="container mx-auto px-4 py-16 sm:py-20">
@@ -1161,7 +1340,10 @@ const Tournament: React.FC = () => {
           {tabs.map(tab => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => {
+                setActiveTab(tab.key);
+                setSearchParams({ tab: tab.key });
+              }}
               className={`px-4 sm:px-6 py-2 rounded-lg w-full sm:w-auto text-sm sm:text-base font-heading font-semibold transition-all ${
                 activeTab === tab.key ? 'btn-primary-gradient' : 'bg-card border text-muted-foreground hover:text-foreground'
               }`}
@@ -1391,6 +1573,41 @@ const Tournament: React.FC = () => {
             )}
 
             <NodeBracketEditor />
+
+            {bracketByStageAndRound.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="font-heading font-semibold text-xs text-muted-foreground uppercase tracking-wider">
+                  Расписание плей-офф по раундам
+                </h4>
+                {bracketByStageAndRound.map(section => (
+                  <div key={section.stage} className="glass-card rounded-xl p-4">
+                    <h5 className="font-heading font-semibold text-sm text-foreground mb-3">
+                      {section.stage === 'playoff-upper' ? 'Верхняя сетка' : section.stage === 'playoff-lower' ? 'Нижняя сетка' : 'Финал'}
+                    </h5>
+                    <div className="space-y-3">
+                      {section.rounds.map(round => (
+                        <div key={`${section.stage}-${round}`} className="rounded-xl border border-border/40 bg-background/30 p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-heading font-semibold text-sm text-foreground">Раунд {round}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {section.byRound[round][0]?.scheduledTime ? `Старт: ${section.byRound[round][0].scheduledTime}` : 'Время не указано'}
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            {section.byRound[round]
+                              .slice()
+                              .sort((a, b) => (a.scheduledTime || '').localeCompare(b.scheduledTime || ''))
+                              .map(match => (
+                                <MatchCard key={match.id} match={match} onOpenDetails={setSelectedMatch} />
+                              ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Match list for editing */}
             {isAdmin && isEditing && bracketMatches.length > 0 && (

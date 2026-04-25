@@ -382,6 +382,17 @@ const Admin: React.FC = () => {
                     onChange={e => setSettings(p => ({ ...p, scheduleCompletedText: e.target.value }))}
                   />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Кнопка "Турнир" в меню</label>
+                  <select
+                    className="w-full bg-background border rounded-lg p-3 text-foreground"
+                    value={settings.tournamentNavDefaultTab}
+                    onChange={e => setSettings(p => ({ ...p, tournamentNavDefaultTab: e.target.value as 'groups' | 'bracket' }))}
+                  >
+                    <option value="groups">Открывать с группового этапа</option>
+                    <option value="bracket">Открывать сразу плей-офф</option>
+                  </select>
+                </div>
               </div>
             </div>
 

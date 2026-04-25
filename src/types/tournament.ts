@@ -45,6 +45,8 @@ export interface BracketConnection {
   fromMatchId: string;
   toMatchId: string;
   toSlot: 1 | 2;
+  label?: string;
+  marker?: 'x' | 'o' | 'triangle' | 'none';
 }
 
 export interface TournamentMatch {
@@ -129,6 +131,7 @@ export interface SiteSettings {
   tournamentCompleted: boolean;
   schedulePreparingText: string;
   scheduleCompletedText: string;
+  tournamentNavDefaultTab: 'groups' | 'bracket';
   mvpText: string;
   mvpPrize: string;
   mvpStage: 'announce' | 'voting' | 'finished';

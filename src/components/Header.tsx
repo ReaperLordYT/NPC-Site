@@ -4,18 +4,6 @@ import { Menu, X, Edit, LogOut, Volume2, VolumeX, Volume1, Music } from 'lucide-
 import { useTournament } from '@/context/TournamentContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const navItems = [
-  { path: '/', label: 'Главная' },
-  { path: '/registration', label: 'Регистрация' },
-  { path: '/rules', label: 'Регламент' },
-  { path: '/teams', label: 'Команды' },
-  { path: '/free-players', label: 'Свободные игроки' },
-  { path: '/tournament', label: 'Турнир' },
-  { path: '/schedule', label: 'Расписание' },
-  { path: '/mvp', label: 'MVP' },
-  { path: '/organizers', label: 'Организаторы' },
-];
-
 const STORAGE_KEY = 'npc-music-enabled';
 const VOLUME_KEY = 'npc-music-volume';
 
@@ -51,6 +39,24 @@ const Header: React.FC = () => {
   const logoClickResetTimerRef = useRef<number | null>(null);
 
   const musicUrl = data.settings.musicUrl;
+  const tournamentPath = data.settings.tournamentNavDefaultTab === 'bracket'
+    ? '/tournament?tab=bracket'
+    : '/tournament?tab=groups';
+  const navItems = [
+    { path: '/', label: 'Главная' },
+    { path: '/registration', label: 'Регистрация' },
+    { path: '/rules', label: 'Регламент' },
+    { path: '/teams', label: 'Команды' },
+    { path: '/free-players', label: 'Свободные игроки' },
+    { path: tournamentPath, label: 'Турнир' },
+    { path: '/schedule', label: 'Расписание' },
+    { path: '/mvp', label: 'MVP' },
+    { path: '/organizers', label: 'Организаторы' },
+  ];
+  const isNavItemActive = (itemPath: string) => {
+    const [pathnameOnly] = itemPath.split('?');
+    return location.pathname === pathnameOnly;
+  };
 
   // Читаем начальное состояние из localStorage
   const [enabled, setEnabled] = useState<boolean>(() => {
@@ -195,7 +201,7 @@ const Header: React.FC = () => {
               key={item.path}
               to={item.path}
               className={`px-3 py-2 rounded-md text-sm font-heading font-semibold tracking-wide transition-colors ${
-                location.pathname === item.path
+                isNavItemActive(item.path)
                   ? 'text-primary bg-primary/10'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
@@ -312,7 +318,7 @@ const Header: React.FC = () => {
                     to={item.path}
                     onClick={() => setMobileOpen(false)}
                     className={`block w-full rounded-lg px-4 py-3 text-base font-heading font-semibold transition-colors ${
-                      location.pathname === item.path
+                      isNavItemActive(item.path)
                         ? 'text-primary bg-primary/10'
                         : 'text-foreground bg-card/40 hover:text-primary hover:bg-muted/70'
                     }`}

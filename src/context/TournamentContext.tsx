@@ -148,6 +148,7 @@ const defaultSettings: SiteSettings = {
   tournamentCompleted: false,
   schedulePreparingText: 'Расписание готовится. Следите за обновлениями.',
   scheduleCompletedText: 'Турнир завершён. Спасибо всем участникам и зрителям!',
+  tournamentNavDefaultTab: 'groups',
   mvpText: 'По итогам турнира будет выбран самый ценный игрок (MVP). MVP определяется общим голосованием зрителей и судей-организаторов.',
   mvpPrize: 'Приз: СЕКРЕТ',
   mvpStage: 'announce',
