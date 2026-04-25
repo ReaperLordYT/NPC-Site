@@ -243,6 +243,42 @@ const syncFreePlayersByTeams = (freePlayers: SiteSettings['freePlayers'], teams:
   }));
 };
 
+const addEliminatedTeamPlayersToFreePool = (freePlayers: SiteSettings['freePlayers'], teams: Team[]) => {
+  const existingSourceKeys = new Set(
+    freePlayers
+      .filter(fp => fp.sourceTeamId && fp.sourcePlayerId)
+      .map(fp => `${fp.sourceTeamId}:${fp.sourcePlayerId}`)
+  );
+
+  const createdFromEliminated = teams
+    .filter(team => team.status === 'eliminated')
+    .flatMap(team =>
+      team.players.map(player => {
+        const sourceKey = `${team.id}:${player.id}`;
+        if (existingSourceKeys.has(sourceKey)) return null;
+
+        existingSourceKeys.add(sourceKey);
+        return {
+          id: `elim-${team.id}-${player.id}`,
+          sourceTeamId: team.id,
+          sourcePlayerId: player.id,
+          nickname: player.nickname || '',
+          discord: player.discordUsername || '',
+          discordDmLink: '',
+          steam: player.steamLink || '',
+          dotabuff: player.dotabuffLink || '',
+          position: '',
+          roles: [],
+          mmr: player.mmr || 0,
+          status: 'free' as const,
+        };
+      })
+    )
+    .filter(Boolean) as SiteSettings['freePlayers'];
+
+  return [...freePlayers, ...createdFromEliminated];
+};
+
 interface TournamentContextType {
   data: TournamentData;
   isAdmin: boolean;
@@ -389,12 +425,13 @@ const loadFromSupabase = useCallback(async () => {
   const addTeam = (team: Team) =>
     updateData(prev => {
       const nextTeams = [...prev.teams, team];
+      const freePlayersWithEliminated = addEliminatedTeamPlayersToFreePool(prev.settings.freePlayers, nextTeams);
       return {
         ...prev,
         teams: nextTeams,
         settings: {
           ...prev.settings,
-          freePlayers: syncFreePlayersByTeams(prev.settings.freePlayers, nextTeams),
+          freePlayers: syncFreePlayersByTeams(freePlayersWithEliminated, nextTeams),
         },
       };
     });
@@ -402,12 +439,13 @@ const loadFromSupabase = useCallback(async () => {
   const updateTeam = (team: Team) =>
     updateData(prev => {
       const nextTeams = prev.teams.map(t => (t.id === team.id ? team : t));
+      const freePlayersWithEliminated = addEliminatedTeamPlayersToFreePool(prev.settings.freePlayers, nextTeams);
       return {
         ...prev,
         teams: nextTeams,
         settings: {
           ...prev.settings,
-          freePlayers: syncFreePlayersByTeams(prev.settings.freePlayers, nextTeams),
+          freePlayers: syncFreePlayersByTeams(freePlayersWithEliminated, nextTeams),
         },
       };
     });

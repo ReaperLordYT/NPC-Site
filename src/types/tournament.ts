@@ -85,6 +85,8 @@ export interface FaqItem { id: string; q: string; a: string; }
 export interface StaffMember { id: string; name: string; role: string; }
 export interface FreePlayer {
   id: string;
+  sourceTeamId?: string;
+  sourcePlayerId?: string;
   nickname: string;
   discord: string;
   discordDmLink?: string;
