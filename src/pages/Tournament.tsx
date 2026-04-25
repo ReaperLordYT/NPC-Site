@@ -22,6 +22,22 @@ const GROUP_ROUND_TIMES: Record<number, string> = {
   5: '18:20',
 };
 
+const SLOT_LABEL_PREFIX = '__label__:';
+
+function decodeSlotLabel(teamId?: string, teamLabel?: string): string {
+  if (teamLabel?.trim()) return teamLabel.trim();
+  if (!teamId) return '';
+  return teamId.startsWith(SLOT_LABEL_PREFIX) ? teamId.slice(SLOT_LABEL_PREFIX.length).trim() : '';
+}
+
+function encodeSlot(teamId: string, teamLabel: string): { teamId: string; teamLabel?: string } {
+  if (teamId) return { teamId, teamLabel: undefined };
+  const normalized = teamLabel.trim();
+  if (!normalized) return { teamId: '', teamLabel: undefined };
+  // Keep custom slot text inside existing team_id field to avoid DB schema dependency.
+  return { teamId: `${SLOT_LABEL_PREFIX}${normalized}`, teamLabel: undefined };
+}
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface MatchEditState {
   team1Id: string;
@@ -42,8 +58,8 @@ function initEdit(m: TournamentMatch): MatchEditState {
   return {
     team1Id: m.team1Id || '',
     team2Id: m.team2Id || '',
-    team1Label: m.team1Label || '',
-    team2Label: m.team2Label || '',
+    team1Label: decodeSlotLabel(m.team1Id, m.team1Label),
+    team2Label: decodeSlotLabel(m.team2Id, m.team2Label),
     format: m.format, stage: m.stage, status: m.status,
     scheduledDate: m.scheduledDate, scheduledTime: m.scheduledTime,
     streamLink: m.streamLink || '', round: m.round || 1,
@@ -56,14 +72,16 @@ const MatchCard: React.FC<{ match: TournamentMatch; onOpenDetails?: (match: Tour
   const { getTeamById, isAdmin, isEditing, updateMatch, deleteMatch } = useTournament();
   const t1 = getTeamById(match.team1Id);
   const t2 = getTeamById(match.team2Id);
-  const t1Name = t1?.name || match.team1Label || 'TBD';
-  const t2Name = t2?.name || match.team2Label || 'TBD';
+  const t1Name = t1?.name || decodeSlotLabel(match.team1Id, match.team1Label) || 'TBD';
+  const t2Name = t2?.name || decodeSlotLabel(match.team2Id, match.team2Label) || 'TBD';
   const [editing, setEditing] = useState(false);
   const [ed, setEd] = useState<MatchEditState>(() => initEdit(match));
 
   const saveEdit = () => {
+    const slot1 = encodeSlot(ed.team1Id, ed.team1Label);
+    const slot2 = encodeSlot(ed.team2Id, ed.team2Label);
     updateMatch({
-      ...match, team1Id: ed.team1Id, team2Id: ed.team2Id, team1Label: ed.team1Label, team2Label: ed.team2Label, format: ed.format, stage: ed.stage, status: ed.status,
+      ...match, team1Id: slot1.teamId, team2Id: slot2.teamId, team1Label: slot1.teamLabel, team2Label: slot2.teamLabel, format: ed.format, stage: ed.stage, status: ed.status,
       scheduledDate: ed.scheduledDate, scheduledTime: ed.scheduledTime,
       streamLink: ed.streamLink || undefined, round: ed.round,
       result: (ed.status === 'completed' || ed.status === 'live')
@@ -221,8 +239,8 @@ const NodeCard: React.FC<NodeCardProps> = ({
   const { getTeamById } = useTournament();
   const t1 = getTeamById(match.team1Id);
   const t2 = getTeamById(match.team2Id);
-  const t1Name = t1?.name || match.team1Label || 'TBD';
-  const t2Name = t2?.name || match.team2Label || 'TBD';
+  const t1Name = t1?.name || decodeSlotLabel(match.team1Id, match.team1Label) || 'TBD';
+  const t2Name = t2?.name || decodeSlotLabel(match.team2Id, match.team2Label) || 'TBD';
 
   // Determine required wins from format (e.g. Bo3 -> 2)
   const nodeWinsRequired = React.useMemo(() => {
@@ -353,8 +371,8 @@ const NodeCard: React.FC<NodeCardProps> = ({
       {/* Team 1 */}
       <div
         data-no-drag="1"
-        className={`flex items-center justify-between px-3 py-2 transition-colors ${t1Win ? 'bg-primary/10' : ''} ${isEditing && !connectMode && match.team1Id ? 'cursor-pointer hover:bg-muted/20' : ''}`}
-        onClick={() => { if (isEditing && !connectMode && match.team1Id) onWin(match.id, 1); }}
+        className={`flex items-center justify-between px-3 py-2 transition-colors ${t1Win ? 'bg-primary/10' : ''} ${isEditing && !connectMode && t1 ? 'cursor-pointer hover:bg-muted/20' : ''}`}
+        onClick={() => { if (isEditing && !connectMode && t1) onWin(match.id, 1); }}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {t1?.logo
@@ -378,8 +396,8 @@ const NodeCard: React.FC<NodeCardProps> = ({
       {/* Team 2 */}
       <div
         data-no-drag="1"
-        className={`flex items-center justify-between px-3 py-2 transition-colors ${t2Win ? 'bg-primary/10' : ''} ${isEditing && !connectMode && match.team2Id ? 'cursor-pointer hover:bg-muted/20' : ''}`}
-        onClick={() => { if (isEditing && !connectMode && match.team2Id) onWin(match.id, 2); }}
+        className={`flex items-center justify-between px-3 py-2 transition-colors ${t2Win ? 'bg-primary/10' : ''} ${isEditing && !connectMode && t2 ? 'cursor-pointer hover:bg-muted/20' : ''}`}
+        onClick={() => { if (isEditing && !connectMode && t2) onWin(match.id, 2); }}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {t2?.logo
@@ -659,12 +677,14 @@ const NodeBracketEditor: React.FC = () => {
     if (!editingNodeId || !nodeEditState) return;
     const match = data.matches.find(m => m.id === editingNodeId);
     if (!match) return;
+    const slot1 = encodeSlot(nodeEditState.team1Id, nodeEditState.team1Label);
+    const slot2 = encodeSlot(nodeEditState.team2Id, nodeEditState.team2Label);
     updateMatch({
       ...match,
-      team1Id: nodeEditState.team1Id,
-      team2Id: nodeEditState.team2Id,
-      team1Label: nodeEditState.team1Label,
-      team2Label: nodeEditState.team2Label,
+      team1Id: slot1.teamId,
+      team2Id: slot2.teamId,
+      team1Label: slot1.teamLabel,
+      team2Label: slot2.teamLabel,
       format: nodeEditState.format,
       stage: nodeEditState.stage,
       status: nodeEditState.status,
@@ -1191,10 +1211,12 @@ const Tournament: React.FC = () => {
   };
 
   const handleCreateMatch = () => {
+    const slot1 = encodeSlot(newMatch.team1Id, newMatch.team1Label);
+    const slot2 = encodeSlot(newMatch.team2Id, newMatch.team2Label);
     addMatch({
       id: Date.now().toString(),
-      team1Id: newMatch.team1Id, team2Id: newMatch.team2Id,
-      team1Label: newMatch.team1Label, team2Label: newMatch.team2Label,
+      team1Id: slot1.teamId, team2Id: slot2.teamId,
+      team1Label: slot1.teamLabel, team2Label: slot2.teamLabel,
       format: newMatch.format, stage: newMatch.stage,
       groupId: newMatch.stage === 'group' ? newMatch.groupId : undefined,
       scheduledDate: newMatch.scheduledDate, scheduledTime: newMatch.scheduledTime,
@@ -1675,7 +1697,7 @@ const Tournament: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3">
                   <div className="text-center sm:text-left">
                     <p className="text-sm text-muted-foreground">Команда 1</p>
-                    <p className="font-heading font-semibold text-foreground">{selectedT1?.name || selectedMatch.team1Label || 'TBD'}</p>
+                    <p className="font-heading font-semibold text-foreground">{selectedT1?.name || decodeSlotLabel(selectedMatch.team1Id, selectedMatch.team1Label) || 'TBD'}</p>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-display font-bold text-foreground">
@@ -1687,7 +1709,7 @@ const Tournament: React.FC = () => {
                   </div>
                   <div className="text-center sm:text-right">
                     <p className="text-sm text-muted-foreground">Команда 2</p>
-                    <p className="font-heading font-semibold text-foreground">{selectedT2?.name || selectedMatch.team2Label || 'TBD'}</p>
+                    <p className="font-heading font-semibold text-foreground">{selectedT2?.name || decodeSlotLabel(selectedMatch.team2Id, selectedMatch.team2Label) || 'TBD'}</p>
                   </div>
                 </div>
               </div>
