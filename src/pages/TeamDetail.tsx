@@ -84,7 +84,7 @@ const TeamDetail: React.FC = () => {
     setActivePlayerIds(defaultActive);
   }, [team.id]);
 
-  let wins = 0, losses = 0, draws = 0;
+  let wins = 0, losses = 0;
   completed.forEach(m => {
     if (!m.result) return;
     const isTeam1 = m.team1Id === team.id;
@@ -92,7 +92,6 @@ const TeamDetail: React.FC = () => {
     const their = isTeam1 ? m.result.team2Score : m.result.team1Score;
     if (my > their) wins++;
     else if (my < their) losses++;
-    else draws++;
   });
 
   const statusConfig = {
@@ -187,7 +186,7 @@ const TeamDetail: React.FC = () => {
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
               <div className="bg-background/50 rounded-xl p-3">
                 <p className="text-2xl font-display font-bold text-foreground">{totalMmr}</p>
                 <p className="text-xs text-muted-foreground">Суммарный MMR</p>
@@ -199,10 +198,6 @@ const TeamDetail: React.FC = () => {
               <div className="bg-background/50 rounded-xl p-3">
                 <p className="text-2xl font-display font-bold text-red-400">{losses}</p>
                 <p className="text-xs text-muted-foreground">Поражения</p>
-              </div>
-              <div className="bg-background/50 rounded-xl p-3">
-                <p className="text-2xl font-display font-bold text-yellow-400">{draws}</p>
-                <p className="text-xs text-muted-foreground">Ничьи</p>
               </div>
             </div>
           </div>
@@ -338,9 +333,14 @@ const TeamDetail: React.FC = () => {
                   const theirScore = match.result ? (isTeam1 ? match.result.team2Score : match.result.team1Score) : null;
                   const didWin = myScore !== null && theirScore !== null && myScore > theirScore;
                   const didLose = myScore !== null && theirScore !== null && myScore < theirScore;
+                  const isCompleted = match.status === 'completed';
 
-                  const resultBg = match.status === 'completed'
-                    ? didWin ? 'border-l-4 border-l-green-500/60' : didLose ? 'border-l-4 border-l-red-500/60' : 'border-l-4 border-l-yellow-500/60'
+                  const resultBg = isCompleted
+                    ? didWin
+                      ? 'border border-green-500/50 ring-1 ring-green-500/25'
+                      : didLose
+                        ? 'border border-red-500/40'
+                        : 'border border-green-500/35'
                     : match.status === 'cancelled' ? 'opacity-50' : '';
 
                   return (
@@ -372,8 +372,8 @@ const TeamDetail: React.FC = () => {
                             </span>
                             <span className="text-muted-foreground font-bold">:</span>
                             <span className="text-2xl font-display font-bold tabular-nums text-muted-foreground">{theirScore}</span>
-                            <span className={`text-xs font-heading px-2 py-0.5 rounded font-bold ${didWin ? 'bg-green-500/20 text-green-400' : didLose ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                              {didWin ? 'ПОБЕДА' : didLose ? 'ПОРАЖЕНИЕ' : 'НИЧЬЯ'}
+                            <span className={`text-xs font-heading px-2 py-0.5 rounded font-bold ${didWin ? 'bg-green-500/20 text-green-400' : didLose ? 'bg-red-500/20 text-red-400' : 'bg-muted text-muted-foreground'}`}>
+                              {didWin ? 'ПОБЕДА' : didLose ? 'ПОРАЖЕНИЕ' : 'ЗАВЕРШЁН'}
                             </span>
                           </div>
                         ) : (
@@ -382,7 +382,7 @@ const TeamDetail: React.FC = () => {
                             match.status === 'cancelled' ? 'bg-muted text-muted-foreground' :
                             'bg-muted text-muted-foreground'
                           }`}>
-                            {match.status === 'live' ? '🔴 LIVE' : match.status === 'cancelled' ? '❌ Отменён' : 'Предстоит'}
+                            {match.status === 'live' ? '🔴 LIVE' : match.status === 'cancelled' ? '❌ Отменён' : 'LIVE'}
                           </div>
                         )}
                       </div>

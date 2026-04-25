@@ -84,7 +84,7 @@ const MatchCard: React.FC<{ match: TournamentMatch; onOpenDetails?: (match: Tour
       onClick={() => {
         if (!editing && onOpenDetails) onOpenDetails(match);
       }}
-      className={`glass-card rounded-xl p-4 ${match.status === 'live' ? 'ring-1 ring-red-500/40' : ''} ${match.status === 'cancelled' ? 'opacity-50' : ''} ${!editing && onOpenDetails ? 'cursor-pointer' : ''}`}
+      className={`glass-card rounded-xl p-4 ${match.status === 'live' ? 'ring-1 ring-red-500/40' : ''} ${match.status === 'completed' ? 'border border-green-500/45 ring-1 ring-green-500/20' : ''} ${match.status === 'cancelled' ? 'opacity-50' : ''} ${!editing && onOpenDetails ? 'cursor-pointer' : ''}`}
     >
       {editing ? (
         <div className="space-y-3">
@@ -299,7 +299,7 @@ const NodeCard: React.FC<NodeCardProps> = ({
         cursor: connectMode ? 'pointer' : isEditing ? (dragging ? 'grabbing' : 'grab') : 'default',
         userSelect: 'none',
       }}
-      className={`rounded-xl overflow-hidden border shadow-lg ${stageColor} ${cancelled ? 'opacity-40' : ''} ${match.status === 'live' ? 'ring-1 ring-red-500/60' : ''} bg-card transition-shadow ${dragging ? 'shadow-2xl shadow-primary/20' : ''} ${connectingFrom === match.id ? 'ring-2 ring-primary' : ''} ${!match.team1Id && !match.team2Id ? 'border-dashed opacity-75' : ''}`}
+      className={`rounded-xl overflow-hidden border shadow-lg ${stageColor} ${cancelled ? 'opacity-40' : ''} ${match.status === 'live' ? 'ring-1 ring-red-500/60' : ''} ${match.status === 'completed' ? 'ring-1 ring-green-500/45 border-green-500/55' : ''} bg-card transition-shadow ${dragging ? 'shadow-2xl shadow-primary/20' : ''} ${connectingFrom === match.id ? 'ring-2 ring-primary' : ''} ${!match.team1Id && !match.team2Id ? 'border-dashed opacity-75' : ''}`}
       onMouseDown={onMouseDown}
       onDoubleClick={() => {
         if (isAdmin && isEditing && !connectMode) onEdit(match.id);
