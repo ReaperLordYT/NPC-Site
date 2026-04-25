@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { useTournament } from '@/context/TournamentContext';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, RefreshCw, Tv, Edit2, Check, X, Trophy, Crown, Link, Move, Circle, Triangle, HelpCircle } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Tv, Edit2, Check, X, Trophy, Crown, Link, Move, HelpCircle } from 'lucide-react';
 import { TournamentMatch, Group, BracketConnection } from '@/types/tournament';
 import { formatDate } from '@/lib/dateFormat';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
@@ -195,6 +195,7 @@ const PORT_R = 6;  // radius of connection port circles
 // ─── Node Card (draggable) ───────────────────────────────────────────────────
 interface NodeCardProps {
   match: MatchNode;
+  blockNumber: number;
   isAdmin: boolean;
   isEditing: boolean;
   connectMode: boolean;
@@ -208,7 +209,7 @@ interface NodeCardProps {
 }
 
 const NodeCard: React.FC<NodeCardProps> = ({
-  match, isAdmin, isEditing, connectMode, connectingFrom,
+  match, blockNumber, isAdmin, isEditing, connectMode, connectingFrom,
   zoom, onDragEnd, onWin, onStartConnect, onDelete, onEdit,
 }) => {
   const { getTeamById } = useTournament();
@@ -305,6 +306,9 @@ const NodeCard: React.FC<NodeCardProps> = ({
         if (isAdmin && isEditing && !connectMode) onEdit(match.id);
       }}
     >
+      <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground/80 font-heading font-bold">
+        {blockNumber}
+      </div>
       {/* Header */}
       <div className={`flex items-center justify-between px-3 py-1.5 border-b border-border/20 ${stageBg}`}>
         <div className="flex items-center gap-2 min-w-0">
@@ -416,13 +420,6 @@ function bezierPath(x1: number, y1: number, x2: number, y2: number): string {
   return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
 }
 
-function markerToSymbol(marker?: BracketConnection['marker']): string {
-  if (marker === 'x') return '✕';
-  if (marker === 'o') return '○';
-  if (marker === 'triangle') return '△';
-  return '';
-}
-
 // ─── Node positions are stored directly in each match (nodeX/nodeY fields in data.json)
 // No localStorage needed — positions are synced to GitHub with all other data.
 function loadPositions(): Record<string, { x: number; y: number }> { return {}; }
@@ -507,6 +504,17 @@ const NodeBracketEditor: React.FC = () => {
     setConnections(next);
     updateBracketConnections(next);
   }, [updateBracketConnections]);
+  const blockNumbers = React.useMemo(() => {
+    const sorted = [...bracketMatches].sort((a, b) => {
+      const pa = positions[a.id] ?? { x: 0, y: 0 };
+      const pb = positions[b.id] ?? { x: 0, y: 0 };
+      if (Math.abs(pa.y - pb.y) < 24) return pa.x - pb.x;
+      return pa.y - pb.y;
+    });
+    const map: Record<string, number> = {};
+    sorted.forEach((m, idx) => { map[m.id] = idx + 1; });
+    return map;
+  }, [bracketMatches, positions]);
 
   useEffect(() => {
     setConnections(data.bracketConnections || []);
@@ -620,8 +628,6 @@ const NodeBracketEditor: React.FC = () => {
         fromMatchId: connectingFrom,
         toMatchId: fromId,
         toSlot,
-        marker: 'x',
-        label: '',
       };
       const next = [...existing, newConn];
       persistConnections(next);
@@ -745,15 +751,30 @@ const NodeBracketEditor: React.FC = () => {
     const y2 = to.y + slotOffset;
 
     const stageFrom = bracketMatches.find(m => m.id === conn.fromMatchId)?.stage;
-    const color = stageFrom === 'playoff-upper' ? 'rgba(96,165,250,0.55)'
-                : stageFrom === 'playoff-lower' ? 'rgba(248,113,113,0.55)'
-                : stageFrom === 'final'         ? 'rgba(250,200,50,0.55)'
-                : 'rgba(255,255,255,0.25)';
+    const stageTo = bracketMatches.find(m => m.id === conn.toMatchId)?.stage;
+    const color = stageFrom === 'playoff-upper' ? 'rgba(96,165,250,0.65)'
+                : stageFrom === 'playoff-lower' ? 'rgba(248,113,113,0.65)'
+                : stageFrom === 'final'         ? 'rgba(250,200,50,0.65)'
+                : 'rgba(255,255,255,0.30)';
 
     const midX = (x1 + x2) / 2;
     const midY = (y1 + y2) / 2;
-    return { ...conn, path: bezierPath(x1, y1, x2, y2), color, midX, midY };
-  }).filter(Boolean) as (NodeConnection & { path: string; color: string; midX: number; midY: number })[];
+    const usesFinalGradient = stageTo === 'final' && stageFrom !== 'final';
+    const gradientId = usesFinalGradient ? `conn-grad-${conn.id.replace(/[^a-zA-Z0-9_-]/g, '_')}` : undefined;
+    return { ...conn, path: bezierPath(x1, y1, x2, y2), color, midX, midY, x1, y1, x2, y2, stageFrom, usesFinalGradient, gradientId };
+  }).filter(Boolean) as (NodeConnection & {
+    path: string;
+    color: string;
+    midX: number;
+    midY: number;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    stageFrom?: TournamentMatch['stage'];
+    usesFinalGradient: boolean;
+    gradientId?: string;
+  })[];
 
   const isEmpty = bracketMatches.length === 0;
 
@@ -787,15 +808,8 @@ const NodeBracketEditor: React.FC = () => {
             <span className="text-xs text-muted-foreground min-w-12 text-center">{Math.round(zoom * 100)}%</span>
             <button onClick={() => { setUserAdjustedView(true); setZoom(z => Math.min(2.2, +(z + 0.1).toFixed(2))); }} className="text-xs text-muted-foreground hover:text-foreground px-1" title="Увеличить">+</button>
             <button onClick={() => { setUserAdjustedView(true); setZoom(1); }} className="text-xs text-primary hover:underline px-1" title="Сбросить масштаб">1:1</button>
-            <button onClick={() => { setUserAdjustedView(false); fitToView(); }} className="text-xs text-primary hover:underline px-1" title="Вписать сетку">Fit</button>
+            <button onClick={() => { setUserAdjustedView(false); fitToView(); }} className="text-xs text-primary hover:underline px-1" title="Центрировать сетку">Центр.</button>
           </div>
-          <button
-            onClick={() => setShowHelp(s => !s)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-heading border transition-all ${showHelp ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted-foreground hover:text-foreground'}`}
-            title="Как пользоваться сеткой"
-          >
-            <HelpCircle size={13} /> ?
-          </button>
           <span className="text-xs text-muted-foreground/50 ml-auto hidden md:block">
             Колесо — масштаб · Shift+колесо / ПКМ / средняя — панорама
           </span>
@@ -807,7 +821,6 @@ const NodeBracketEditor: React.FC = () => {
         <span className="flex items-center gap-1"><span className="w-3 h-0.5 rounded bg-blue-400/70 inline-block" /> Верхняя сетка</span>
         <span className="flex items-center gap-1"><span className="w-3 h-0.5 rounded bg-red-400/70 inline-block" /> Нижняя сетка</span>
         <span className="flex items-center gap-1"><span className="w-3 h-0.5 rounded bg-yellow-400/70 inline-block" /> Финал</span>
-        <span className="flex items-center gap-1">✕ / ○ / △ — метки переходов на линиях</span>
         {isAdmin && isEditing && <span className="flex items-center gap-1"><span className="w-3 h-0.5 rounded bg-foreground/30 inline-block" /> Кликни команду = победитель</span>}
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -816,13 +829,20 @@ const NodeBracketEditor: React.FC = () => {
         <span className="min-w-12 text-center">{Math.round(zoom * 100)}%</span>
         <button onClick={() => { setUserAdjustedView(true); setZoom(z => Math.min(2.2, +(z + 0.1).toFixed(2))); }} className="px-2 py-0.5 border border-border rounded hover:text-foreground">+</button>
         <button onClick={() => { setUserAdjustedView(true); setZoom(1); }} className="text-primary hover:underline">Сброс</button>
-        <button onClick={() => { setUserAdjustedView(false); fitToView(); }} className="text-primary hover:underline">Вписать</button>
+        <button onClick={() => { setUserAdjustedView(false); fitToView(); }} className="text-primary hover:underline">Центрировать</button>
+        <button
+          onClick={() => setShowHelp(s => !s)}
+          className={`inline-flex items-center gap-1 px-2 py-0.5 border rounded transition-all ${showHelp ? 'border-primary text-primary bg-primary/10' : 'border-border hover:text-foreground'}`}
+          title="Справка по сетке"
+        >
+          <HelpCircle size={12} /> ?
+        </button>
       </div>
       {showHelp && (
         <div className="glass-card rounded-xl p-4 border border-primary/20 text-sm text-muted-foreground space-y-1">
           <p><span className="text-foreground font-heading">Колесо мыши</span> — масштаб сетки внутри блока (страница не зумится).</p>
           <p><span className="text-foreground font-heading">Shift + колесо</span>, <span className="text-foreground font-heading">ПКМ</span> или <span className="text-foreground font-heading">средняя кнопка</span> — перемещение по канвасу.</p>
-          <p><span className="text-foreground font-heading">Fit</span> — автоматически вписать сетку в окно.</p>
+          <p><span className="text-foreground font-heading">Центрировать</span> — автоматически выровнять сетку по центру окна.</p>
           <p><span className="text-foreground font-heading">В режиме редактирования</span>: перетаскивай блоки, двойной клик по блоку — редактирование, кнопка «Соединить узлы» — связь матчей.</p>
         </div>
       )}
@@ -857,45 +877,30 @@ const NodeBracketEditor: React.FC = () => {
           <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'top left', position: 'absolute', top: 0, left: 0, width: canvasSize.w, height: canvasSize.h }}>
             {/* SVG connections layer */}
             <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
+              <defs>
+                {connectionPaths
+                  .filter(conn => conn.usesFinalGradient && conn.gradientId)
+                  .map(conn => (
+                    <linearGradient
+                      key={conn.gradientId}
+                      id={conn.gradientId}
+                      gradientUnits="userSpaceOnUse"
+                      x1={conn.x1}
+                      y1={conn.y1}
+                      x2={conn.x2}
+                      y2={conn.y2}
+                    >
+                      <stop offset="0%" stopColor={conn.stageFrom === 'playoff-upper' ? 'rgba(96,165,250,0.95)' : 'rgba(248,113,113,0.95)'} />
+                      <stop offset="100%" stopColor="rgba(250,200,50,0.95)" />
+                    </linearGradient>
+                  ))}
+              </defs>
               {connectionPaths.map(conn => (
                 <g key={conn.id}>
                   {/* Glow */}
-                  <path d={conn.path} fill="none" stroke={conn.color} strokeWidth="6" strokeOpacity="0.15" strokeLinecap="round" />
+                  <path d={conn.path} fill="none" stroke={conn.usesFinalGradient && conn.gradientId ? `url(#${conn.gradientId})` : conn.color} strokeWidth="6" strokeOpacity="0.15" strokeLinecap="round" />
                   {/* Main line */}
-                  <path d={conn.path} fill="none" stroke={conn.color} strokeWidth="2" strokeLinecap="round" />
-                  {(conn.label || conn.marker && conn.marker !== 'none') && (
-                    <foreignObject
-                      x={conn.midX - 70}
-                      y={conn.midY - 30}
-                      width="140"
-                      height="28"
-                      style={{ pointerEvents: 'none' }}
-                    >
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 6,
-                          minWidth: 100,
-                          maxWidth: 140,
-                          margin: '0 auto',
-                          padding: '3px 8px',
-                          borderRadius: 999,
-                          fontSize: 11,
-                          color: 'rgba(255,255,255,0.9)',
-                          background: 'rgba(10,14,28,0.72)',
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {conn.marker && conn.marker !== 'none' && <span>{markerToSymbol(conn.marker)}</span>}
-                        {conn.label && <span>{conn.label}</span>}
-                      </div>
-                    </foreignObject>
-                  )}
+                  <path d={conn.path} fill="none" stroke={conn.usesFinalGradient && conn.gradientId ? `url(#${conn.gradientId})` : conn.color} strokeWidth="2" strokeLinecap="round" />
                   {/* Delete button on hover — midpoint */}
                   {isAdmin && isEditing && (
                     <foreignObject
@@ -929,6 +934,7 @@ const NodeBracketEditor: React.FC = () => {
                   isEditing={isEditing}
                   connectMode={connectMode}
                   connectingFrom={connectingFrom}
+                  blockNumber={blockNumbers[match.id] ?? 0}
                   zoom={zoom}
                   onDragEnd={handleDragEnd}
                   onWin={handleWin}
@@ -1035,36 +1041,14 @@ const NodeBracketEditor: React.FC = () => {
           </div>
           <div className="space-y-2">
             {connections.map(conn => (
-              <div key={conn.id} className="grid grid-cols-1 md:grid-cols-[160px_150px_1fr_auto] gap-2 items-center rounded-lg border border-border/40 bg-background/20 px-3 py-2">
+              <div key={conn.id} className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2 items-center rounded-lg border border-border/40 bg-background/20 px-3 py-2">
                 <span className="text-xs text-muted-foreground truncate">{conn.fromMatchId} → {conn.toMatchId}</span>
-                <select
-                  className="bg-background border border-border rounded-lg p-1.5 text-foreground text-xs"
-                  value={conn.marker || 'none'}
-                  onChange={e => {
-                    const marker = e.target.value as NodeConnection['marker'];
-                    persistConnections(connections.map(c => c.id === conn.id ? { ...c, marker } : c));
-                  }}
+                <button
+                  onClick={() => handleDeleteConnection(conn.id)}
+                  className="px-2 py-1 border border-border rounded text-xs text-muted-foreground hover:text-destructive"
                 >
-                  <option value="none">Без символа</option>
-                  <option value="x">✕ Поражение</option>
-                  <option value="o">○ Альтернативно</option>
-                  <option value="triangle">△ Следующий шаг</option>
-                </select>
-                <input
-                  className="bg-background border border-border rounded-lg p-1.5 text-foreground text-xs"
-                  placeholder="Текст на линии (напр. Проигравший 11)"
-                  value={conn.label || ''}
-                  onChange={e => {
-                    const label = e.target.value;
-                    persistConnections(connections.map(c => c.id === conn.id ? { ...c, label } : c));
-                  }}
-                />
-                <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                  {(conn.marker === 'x') && <X size={12} />}
-                  {(conn.marker === 'o') && <Circle size={12} />}
-                  {(conn.marker === 'triangle') && <Triangle size={12} />}
-                  {conn.marker === 'none' || !conn.marker ? '—' : markerToSymbol(conn.marker)}
-                </span>
+                  Удалить
+                </button>
               </div>
             ))}
           </div>
