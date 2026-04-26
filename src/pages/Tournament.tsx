@@ -770,8 +770,24 @@ const NodeBracketEditor: React.FC<{
       setPan(prev => ({ x: prev.x - e.deltaY * 0.5, y: prev.y - e.deltaX * 0.5 }));
       return;
     }
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cursorX = e.clientX - rect.left;
+    const cursorY = e.clientY - rect.top;
     const delta = e.deltaY < 0 ? 0.08 : -0.08;
-    setZoom(prev => Math.min(2.2, Math.max(0.45, +(prev + delta).toFixed(2))));
+    setZoom(prevZoom => {
+      const nextZoom = Math.min(2.2, Math.max(0.45, +(prevZoom + delta).toFixed(2)));
+      if (nextZoom === prevZoom) return prevZoom;
+      setPan(prevPan => {
+        const worldX = (cursorX - prevPan.x) / prevZoom;
+        const worldY = (cursorY - prevPan.y) / prevZoom;
+        return {
+          x: Math.round(cursorX - worldX * nextZoom),
+          y: Math.round(cursorY - worldY * nextZoom),
+        };
+      });
+      return nextZoom;
+    });
   };
 
   const handleAutoLayout = () => {
